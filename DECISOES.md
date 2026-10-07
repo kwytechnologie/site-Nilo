@@ -5,19 +5,10 @@ depois marca, depois produto e texto.
 
 ## Trava publicar
 
-1. **GitHub Pages em repositório privado. O site não está no ar.** Testado em 07/10/2026: o
-   workflow `.github/workflows/deploy.yml` instala e gera o site sem erro, e falha no passo
-   `actions/configure-pages`, porque o Pages não está ativado no `site-Nilo`. No plano gratuito
-   o GitHub só ativa Pages em repositório público. A sessão na nuvem não conseguiu nem tentar
-   ativar (o acesso à API do Pages é bloqueado nela), e o repositório **não** foi tornado
-   público. Caminhos, do mais rápido ao mais caro:
-   - tornar o `site-Nilo` público e ativar em Settings > Pages > Source: GitHub Actions (o código
-     do site fica visível; não há segredo nenhum nele);
-   - assinar o GitHub Pro (Pages em repositório privado);
-   - publicar em outro lugar: Cloudflare Pages ou Netlify (exigem conta), ou o S3 + CloudFront que
-     já hospeda o kwytech.com (nada da AWS foi tocado nesta fase).
-   Depois de ativar, qualquer `git push` na `main` publica sozinho em
-   `https://kwytechnologie.github.io/site-Nilo/`.
+1. **Publicação: resolvido em 07/10/2026.** O repositório ficou público, o Pages foi ligado com a
+   origem GitHub Actions e o site está no ar em https://kwytechnologie.github.io/site-Nilo/
+   (prancha da marca em `/site-Nilo/marca.html`). Cada `git push` na `main` publica sozinho.
+   As duas execuções com erro no Actions são de antes de o Pages ser ligado.
 2. **Para onde vai o botão "Quero o Nilo".** Hoje abre o WhatsApp comercial da KWY
    (+55 48 4042-0387) com a mensagem "Quero conhecer o Nilo". Alternativas: número próprio do
    Nilo, lista de espera com formulário (como o Web3Forms do site da KWY) ou pré-venda.
