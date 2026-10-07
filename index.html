@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nilo · O galão avisa antes de acabar</title>
+  <meta name="description" content="O Nilo fica debaixo do galão de água, mede quanto resta e pede água pelo WhatsApp antes de acabar. Um produto KWY Technologies." />
+  <meta name="theme-color" content="#0B1F2A" />
+  <meta property="og:title" content="Nilo · A água acaba. Você não fica sem." />
+  <meta property="og:description" content="A base inteligente que mede o seu galão e pede água pelo WhatsApp antes de acabar." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:image" content="/img/og-nilo.jpg" />
+  <link rel="icon" href="/marca/icone-gota.svg" type="image/svg+xml" />
+  <script>document.documentElement.classList.add('js')</script>
+  <!-- Sem rastreamento nem cookies nesta prévia: nada de GTM até a decisão de analytics (ver DECISOES.md). -->
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- Palco 3D: um único canvas fixo atrás de tudo, que troca de cena (rio, nilômetro) conforme a rolagem. -->
+  <div class="stage" aria-hidden="true">
+    <canvas id="stage"></canvas>
+    <div class="stage__poster stage__poster--rio"></div>
+    <div class="stage__poster stage__poster--poco"></div>
+    <div class="stage__veil"></div>
+  </div>
+
+  <header class="nav" data-nav>
+    <a class="nav__logo" href="#inicio" aria-label="Nilo, voltar ao início">
+      <img src="/marca/nilo-a-covado-escuro.svg" alt="Nilo" width="248" height="170" />
+    </a>
+    <nav class="nav__links" aria-label="Seções">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#whatsapp">No WhatsApp</a>
+      <a href="#empresas">Empresas</a>
+      <a href="#distribuidoras">Distribuidoras</a>
+      <a href="#perguntas">Perguntas</a>
+    </nav>
+    <a class="btn btn--cta btn--sm" href="https://wa.me/554840420387?text=Quero%20conhecer%20o%20Nilo" target="_blank" rel="noopener" data-cta="nav">Quero o meu</a>
+    <button class="nav__menu" type="button" aria-expanded="false" aria-controls="menu-movel" data-menu>
+      <span class="sr-only">Abrir menu</span><span></span><span></span>
+    </button>
+  </header>
+  <div class="menu-movel" id="menu-movel" hidden>
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#whatsapp">No WhatsApp</a>
+    <a href="#empresas">Empresas</a>
+    <a href="#distribuidoras">Distribuidoras</a>
+    <a href="#perguntas">Perguntas</a>
+    <a class="btn btn--cta" href="https://wa.me/554840420387?text=Quero%20conhecer%20o%20Nilo" target="_blank" rel="noopener">Quero o meu</a>
+  </div>
+
+  <!-- Medidor lateral: aparece na descida do nilômetro e mostra o côvado em que você está. -->
+  <aside class="medidor" aria-hidden="true" data-medidor>
+    <span class="medidor__rot">côvado</span>
+    <span class="medidor__ar" data-medidor-ar>١٦</span>
+    <span class="medidor__num" data-medidor-num>16</span>
+    <span class="medidor__nota">cheia ideal</span>
+    <span class="medidor__barra"><i data-medidor-agua></i></span>
+  </aside>
+
+  <main id="conteudo">
+    <!-- ════════════ O RIO ════════════ -->
+    <section class="rio" id="rio" data-scene="rio">
+
+      <div class="parada parada--hero" id="inicio" data-parada="0">
+        <div class="hero">
+          <p class="eyebrow">Balança inteligente para galão de água</p>
+          <h1 class="hero__titulo"><span>A água acaba.</span> <span>Você não fica sem.</span></h1>
+          <p class="hero__sub">O Nilo fica debaixo do galão, mede quanto ainda resta e pede água pelo WhatsApp antes de acabar. Você não precisa instalar nenhum aplicativo.</p>
+          <div class="hero__acoes">
+            <a class="btn btn--cta" href="https://wa.me/554840420387?text=Quero%20conhecer%20o%20Nilo" target="_blank" rel="noopener" data-cta="hero">Quero o Nilo</a>
+            <a class="btn btn--ghost" href="#problema">Navegue pelo Nilo</a>
+          </div>
+          <ul class="hero__fatos">
+            <li><b>WhatsApp</b> avisa e faz o pedido</li>
+            <li><b>3 pilhas AA</b> duram de 9 meses a 1 ano</li>
+          </ul>
+        </div>
+        <div class="rolar" aria-hidden="true"><span></span>role para navegar</div>
+      </div>
+
+      <div class="parada parada--esq" id="problema" data-parada="1">
+        <article class="placa">
+          <p class="eyebrow">O problema</p>
+          <h2>Galão não avisa. Ele simplesmente acaba.</h2>
+          <p>Ninguém olha o nível da água até precisar dela. Aí vem o copo pela metade, a ligação para a distribuidora e a espera com sede.</p>
+          <p>Em casa é chato. No escritório, para a equipe inteira.</p>
+          <ol class="horas" aria-label="Quando o galão costuma acabar">
+            <li><span>domingo, 21h</span>distribuidora fechada</li>
+            <li><span>visita chegando</span>e o café sem água</li>
+            <li><span>segunda, 9h</span>reunião com a sala cheia</li>
+          </ol>
+        </article>
+      </div>
+
+      <div class="parada parada--dir" id="como-funciona" data-parada="2">
+        <article class="placa placa--larga">
+          <p class="eyebrow">Como funciona</p>
+          <h2>Instala em minutos. Depois disso, você esquece que existe.</h2>
+          <ol class="passos">
+            <li>
+              <span class="passo__num" aria-hidden="true"><i></i></span>
+              <h3>Coloque o galão em cima</h3>
+              <p>O Nilo é uma base que vai debaixo do galão. Funciona com 3 pilhas AA, sem fio na tomada.</p>
+            </li>
+            <li>
+              <span class="passo__num" aria-hidden="true"><i></i><i></i></span>
+              <h3>Conecte e mande um oi</h3>
+              <p>Pelo celular, você liga o Nilo no Wi-Fi da casa e chama a gente no WhatsApp. O cadastro acontece na própria conversa.</p>
+            </li>
+            <li>
+              <span class="passo__num" aria-hidden="true"><i></i><i></i><i></i></span>
+              <h3>Pronto, ele cuida do resto</h3>
+              <p>O Nilo pesa o galão o tempo todo. Quando a água chega no fim, você recebe o aviso e decide, ou deixa ele pedir sozinho.</p>
+            </li>
+          </ol>
+          <p class="nota">Os traços acima são os números do Egito antigo: um traço por unidade.</p>
+        </article>
+      </div>
+
+      <div class="parada parada--esq" id="whatsapp" data-parada="3">
+        <article class="placa placa--chat">
+          <div>
+            <p class="eyebrow">No WhatsApp</p>
+            <h2>Tudo acontece numa conversa que você já tem aberta.</h2>
+            <ul class="lista">
+              <li>Veja quanto falta no galão quando quiser</li>
+              <li>Pague por Pix na própria conversa</li>
+              <li>Troque de distribuidora ou pause os avisos</li>
+            </ul>
+          </div>
+          <div class="chat" data-chat aria-label="Exemplo de conversa com o Nilo">
+            <div class="chat__topo">
+              <img src="/marca/icone-gota.svg" alt="" width="36" height="36" />
+              <div><b>Nilo</b><small>online</small></div>
+            </div>
+            <div class="chat__corpo" role="list">
+              <div class="msg msg--nilo" role="listitem">Oi, Ana! O galão da <b>Cozinha</b> está quase no fim. Quer que eu peça outro?
+                <div class="msg__botoes"><span class="is-ativo">Pedir água</span><span>Agora não</span></div>
+              </div>
+              <div class="msg msg--voce" role="listitem">Pedir água</div>
+              <div class="msg msg--nilo" role="listitem">Feito. Mandei o pedido para a <b>distribuidora mais perto</b> de você. Ela confirma por aqui.</div>
+              <div class="msg msg--nilo" role="listitem">✔ Pedido confirmado. Se quiser, já pode pagar por Pix.</div>
+            </div>
+            <p class="chat__legenda">Conversa ilustrativa.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="parada parada--dir" id="modos" data-parada="4">
+        <article class="placa">
+          <p class="eyebrow">Do seu jeito</p>
+          <h2>Você escolhe quem decide.</h2>
+          <div class="modos">
+            <div class="modo">
+              <h3>Automático</h3>
+              <p>O Nilo avisa e, se você não responder em 15 minutos, faz o pedido sozinho. No primeiro pedido ele sempre confirma com você.</p>
+            </div>
+            <div class="modo">
+              <h3>Manual</h3>
+              <p>O Nilo avisa e espera. Nenhum galão é pedido sem o seu sim.</p>
+            </div>
+          </div>
+          <p class="nota">Dá para trocar de modo a qualquer hora, pelo próprio WhatsApp.</p>
+        </article>
+      </div>
+
+      <div class="parada parada--esq" id="empresas" data-parada="5">
+        <article class="placa">
+          <p class="eyebrow">Casa e empresa</p>
+          <h2>Da cozinha de casa ao escritório inteiro.</h2>
+          <div class="duas">
+            <div>
+              <h3>Em casa</h3>
+              <p>Para quem só lembra do galão quando o copo não enche.</p>
+            </div>
+            <div>
+              <h3>Na empresa</h3>
+              <p>Um Nilo em cada galão, todos no mesmo WhatsApp. O cadastro aceita CNPJ e cada base ganha um apelido, como Recepção ou Copa do 2º andar.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="parada parada--dir" id="distribuidoras" data-parada="6">
+        <article class="placa">
+          <p class="eyebrow">Para distribuidoras</p>
+          <h2>O pedido chega antes de o cliente pensar em ligar.</h2>
+          <p>O Nilo encontra a distribuidora parceira mais perto do cliente e manda o pedido com endereço e quantidade. Você confirma pelo WhatsApp e o cliente volta sozinho, galão após galão.</p>
+          <a class="btn btn--ghost" href="https://wa.me/554840420387?text=Quero%20ser%20uma%20distribuidora%20parceira%20do%20Nilo" target="_blank" rel="noopener" data-cta="distribuidora">Quero ser parceira</a>
+        </article>
+      </div>
+
+      <div class="parada parada--esq" id="nome" data-parada="7">
+        <article class="placa placa--historia">
+          <p class="eyebrow">De onde vem o nome</p>
+          <h2>Há mais de mil anos, o Egito já media a água antes de faltar.</h2>
+          <p>No Cairo, na ilha de Roda, existe um poço ligado ao rio Nilo, com uma escada que desce até uma coluna marcada em côvados. É o nilômetro, construído no ano 861 para medir a altura das cheias.</p>
+          <p>Dezesseis côvados na coluna era a cheia ideal: sinal de fartura. E todo dia, durante a cheia, um pregoeiro passava de porta em porta anunciando quanto o rio tinha subido.</p>
+          <p>O Nilo é esse pregoeiro, só que mora debaixo do seu galão e avisa pelo WhatsApp.</p>
+          <p class="convite">Ali na frente está ele. Entre e desça a escada.</p>
+        </article>
+      </div>
+
+      <!-- Trecho sem texto: a câmera atravessa a porta do nilômetro. -->
+      <div class="porta" data-porta aria-hidden="true"></div>
+    </section>
+
+    <!-- ════════════ O NILÔMETRO ════════════ -->
+    <section class="poco" id="nilometro" data-scene="poco" aria-label="Dentro do nilômetro">
+
+      <div class="inscricao inscricao--esq" id="ficha">
+        <article class="placa placa--pedra">
+          <p class="eyebrow">Ficha técnica</p>
+          <h2>O que tem dentro do Nilo.</h2>
+          <dl class="ficha">
+            <div><dt>Medição</dt><dd>4 sensores de carga pesam o galão o tempo todo</dd></div>
+            <div><dt>Energia</dt><dd>3 pilhas AA, de 9 meses a 1 ano de uso</dd></div>
+            <div><dt>Conexão</dt><dd>Wi-Fi de 2,4 GHz</dd></div>
+            <div><dt>Avisos e pedidos</dt><dd>WhatsApp, sem aplicativo</dd></div>
+            <div><dt>Pagamento</dt><dd>Pix, na própria conversa</dd></div>
+            <div><dt>Para quem</dt><dd>Casas e empresas, com CPF ou CNPJ</dd></div>
+          </dl>
+        </article>
+      </div>
+
+      <div class="inscricao inscricao--dir" id="perguntas">
+        <article class="placa placa--pedra">
+          <p class="eyebrow">Perguntas</p>
+          <h2>O que todo mundo pergunta antes.</h2>
+          <div class="faq">
+            <details>
+              <summary>Preciso instalar algum aplicativo?</summary>
+              <p>Não. Tudo funciona pelo WhatsApp: aviso, pedido, consulta do nível e pagamento.</p>
+            </details>
+            <details>
+              <summary>O Nilo pede água sem me perguntar?</summary>
+              <p>Só se você escolher o modo automático. Mesmo assim, no primeiro pedido ele sempre confirma com você.</p>
+            </details>
+            <details>
+              <summary>Quanto tempo dura a pilha?</summary>
+              <p>De 9 meses a 1 ano, conforme o uso. São 3 pilhas AA comuns.</p>
+            </details>
+            <details>
+              <summary>E se a internet de casa cair?</summary>
+              <p>Se o Nilo passar mais de um dia sem conseguir falar com a gente, você recebe uma mensagem para conferir a conexão.</p>
+            </details>
+            <details>
+              <summary>Funciona com a minha distribuidora?</summary>
+              <p>O Nilo trabalha com distribuidoras parceiras perto de você. Se a sua ainda não é parceira, ela pode entrar.</p>
+            </details>
+            <details>
+              <summary>O que acontece com os meus dados?</summary>
+              <p>Você aceita os termos antes de qualquer cadastro. Pelo próprio WhatsApp dá para pausar os avisos ou apagar o cadastro quando quiser.</p>
+            </details>
+            <details>
+              <summary>Quanto custa?</summary>
+              <p>Os preços de lançamento estão sendo fechados. Chame a gente no WhatsApp para saber primeiro.</p>
+            </details>
+          </div>
+        </article>
+      </div>
+
+      <div class="inscricao inscricao--centro" id="comecar">
+        <article class="final">
+          <p class="eyebrow">Você chegou ao fundo</p>
+          <h2 class="final__titulo">Fundo do poço, só aqui dentro.</h2>
+          <p class="final__sub">Com o Nilo, o seu galão nunca chega lá.</p>
+          <a class="btn btn--cta btn--grande" href="https://wa.me/554840420387?text=Quero%20o%20Nilo" target="_blank" rel="noopener" data-cta="final">Quero o Nilo</a>
+        </article>
+      </div>
+
+      <footer class="rodape">
+        <div class="rodape__marca">
+          <img src="/marca/nilo-a-covado-escuro.svg" alt="Nilo" width="186" height="128" />
+          <p>Um produto <b>KWY Technologies</b>.<br />Florianópolis, SC.</p>
+        </div>
+        <div class="rodape__col">
+          <h3>Fale com a gente</h3>
+          <a href="https://wa.me/554840420387" target="_blank" rel="noopener">WhatsApp +55 48 4042-0387</a>
+          <a href="mailto:comercial@kwytech.com">comercial@kwytech.com</a>
+        </div>
+        <div class="rodape__col">
+          <h3>KWY Technologies</h3>
+          <p>KWY TECHNOLOGIES LTDA<br />CNPJ 66.892.457/0001-66<br />Av. Prof. Othon Gama D'Eça, 900, sala 711<br />Florianópolis, SC, 88015-903</p>
+        </div>
+        <div class="rodape__col">
+          <h3>Legal</h3>
+          <span class="em-breve">Termos de uso, em breve</span>
+          <span class="em-breve">Privacidade, em breve</span>
+          <a href="marca.html">Marca e opções de logo</a>
+        </div>
+        <p class="rodape__nota">O nilômetro deste site é uma reconstrução em 3D inspirada no nilômetro da ilha de Roda, no Cairo. As proporções são aproximadas.</p>
+      </footer>
+    </section>
+  </main>
+
+  <noscript><style>.stage{display:none}.parada,.inscricao{opacity:1!important}</style></noscript>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

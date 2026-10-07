@@ -1,0 +1,26 @@
+{
+  "name": "site-nilo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Site do Nilo, a balança de água da KWY Technologies",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource-variable/rokkitt": "^5.3.0",
+    "@fontsource/reem-kufi": "^5.3.0",
+    "@fontsource/space-mono": "^5.3.0",
+    "gsap": "^3.15.0",
+    "lenis": "^1.3.26",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@fontsource/rokkitt": "^5.3.0",
+    "opentype.js": "^2.0.0",
+    "vite": "^8.3.3"
+  }
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Nilo">
+<title>Nilo</title>
+<rect width="120" height="120" rx="28" fill="#1B3A4C"/><g transform="translate(14 10) scale(.7667)"><path d="M60,8 C78,30 82,58 60,86 C38,58 42,30 60,8 Z" fill="#36B3A8"/>
+  <path d="M60,86 C46,70 22,56 8,58 C12,80 34,94 60,92 Z" fill="#F2E9D8"/>
+  <path d="M60,86 C74,70 98,56 112,58 C108,80 86,94 60,92 Z" fill="#F2E9D8"/>
+  <path d="M30,46 C40,58 50,72 60,86 C44,80 30,66 30,46 Z" fill="#D9A441"/>
+  <path d="M90,46 C80,58 70,72 60,86 C76,80 90,66 90,46 Z" fill="#D9A441"/>
+  <path d="M14,112 L19.75,107 L25.5,112 L31.25,107 L37,112 L42.75,107 L48.5,112 L54.25,107 L60,112 L65.75,107 L71.5,112 L77.25,107 L83,112 L88.75,107 L94.5,112 L100.25,107 L106,112" fill="none" stroke="#36B3A8" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/></g>
+</svg>
