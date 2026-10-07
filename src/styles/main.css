@@ -132,6 +132,11 @@ main { position: relative; z-index: 1; }
     linear-gradient(90deg, rgb(7 20 27 / 0.5) 0%, rgb(7 20 27 / 0.22) 45%, rgb(7 20 27 / 0) 70%);
 }
 .hero { max-width: 1240px; position: relative; }
+.hero .eyebrow { text-shadow: 0 1px 2px rgb(7 20 27 / 0.9), 0 0 18px rgb(7 20 27 / 0.85); }
+@media (max-width: 759px) {
+  /* no celular o texto do topo cai sobre o céu claro: a sombra sobe mais */
+  .parada--hero::before { background: linear-gradient(0deg, rgb(7 20 27 / 0.88) 0%, rgb(7 20 27 / 0.7) 45%, rgb(7 20 27 / 0) 72%); }
+}
 .hero__titulo { font-size: clamp(3rem, 7.6vw, 7.4rem); line-height: .88; font-weight: 900; letter-spacing: -0.02em; text-shadow: 0 2px 40px rgb(11 31 42 / 0.45); }
 .hero__titulo span { display: block; text-wrap: balance; }
 .hero__titulo span + span { color: var(--ouro); }

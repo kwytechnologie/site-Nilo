@@ -88,6 +88,9 @@ export function createNilometer({ quality }) {
   const stepMat = new THREE.MeshStandardMaterial({ map: stepTex, color: '#b7a387', roughness: 1, bumpMap: stepTex, bumpScale: 2.2 });
   const marble = new THREE.MeshStandardMaterial({ color: '#ebe5d8', roughness: 0.45 });
   const wood = new THREE.MeshStandardMaterial({ color: '#4d392a', roughness: 0.8 });
+  // a viga fica no caminho do olhar na descida: madeira mais clara, para não virar uma laje preta
+  const beamWood = new THREE.MeshStandardMaterial({ color: '#9a7350', roughness: 0.7, emissive: '#2a1a0e', emissiveIntensity: 0.6 });
+  const stucco = new THREE.MeshStandardMaterial({ color: '#c9b08a', roughness: 0.9 });
 
   // ── Trecho quadrado: quatro paredes ──────────────────────────────────────
   // A escada desce pelas paredes sul e oeste; norte e leste têm painel e nicho (e o túnel, a leste).
@@ -127,8 +130,9 @@ export function createNilometer({ quality }) {
     }
     // moldura em ziguezague nas aduelas do arco (primeiros arcos ogivais do Egito)
     const arc = pointedArch(nicheW + 0.24, nicheSpring - nicheBottom, nicheTop - nicheBottom + 0.16).getSpacedPoints(60).filter((p) => p.y > nicheSpring - nicheBottom - 0.01);
-    const zz = arc.map((p, i) => new THREE.Vector3(p.x, p.y + nicheBottom + (i % 2 ? 0.07 : 0), 0));
-    place(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(zz, false, 'catmullrom', 0), 120, 0.035, 4), marble), 0, 0, D.W / 2 - 0.02);
+    const zz = arc.map((p, i) => new THREE.Vector3(p.x, p.y + nicheBottom + (i % 2 ? 0.05 : 0), 0));
+    // rente à parede e na cor do reboco: lido como relevo, não como fio solto
+    place(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(zz, false, 'catmullrom', 0), 120, 0.022, 4), stucco), 0, 0, D.W / 2 + 0.01);
     if (w.rot === -Math.PI / 2) {
       // boca do túnel a 8,5 côvados do pé da coluna, dentro do nicho leste
       const mouth = place(new THREE.Mesh(new THREE.PlaneGeometry(0.85, 0.95), new THREE.MeshBasicMaterial({ color: '#030608' })), 0, cubit0Y + 8.5 * D.cubit + 0.47, D.W / 2 + 0.53);
@@ -254,8 +258,8 @@ export function createNilometer({ quality }) {
   const abacus = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.18, 1.25), marble);
   abacus.position.y = cubit0Y + colH + 0.84;
   scene.add(abacus);
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(D.W + 1, 0.4, 0.44), wood);
-  beam.position.y = cubit0Y + colH + 1.13;
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(D.W + 1, 0.3, 0.32), beamWood);
+  beam.position.y = cubit0Y + colH + 1.08;
   beam.castShadow = true;
   scene.add(beam);
 
