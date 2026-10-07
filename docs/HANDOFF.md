@@ -58,25 +58,30 @@ O nome vem do **nilômetro**, em especial o da ilha de Roda, no Cairo (861).
 - `docs/pesquisa-nilometro.md`: pesquisa completa com fontes (medidas, cultura, paletas, fontes,
   modelos 3D, alerta cultural). Base de toda decisão histórica.
 
-## O que falta, em ordem
+## Segunda sessão (nuvem, 07/10/2026): o que foi feito
 
-1. Conferir a nova cena do nilômetro em captura de tela (desktop e celular) e corrigir o que
-   aparecer. O teste de tela pode ser feito com Chrome headless e `--use-angle=swiftshader`;
-   a suavização da câmera já é por tempo, então capturas lentas convergem.
-2. **Página `marca.html`** (hoje é um esqueleto): prancha da marca com as 6 opções de logo em
-   fundo claro e escuro, ícones, paleta com nomes e história (Kemet, lápis, faiança, ouro,
-   cornalina, papiro, linho), tipografia, tom de voz e as regras culturais. É onde ele aprova a logo.
-3. Pôsteres estáticos para quem não tem WebGL: `public/img/poster-rio.jpg` e
-   `public/img/poster-poco.jpg` (capturar da própria cena) e `public/img/og-nilo.jpg` (1200 x 630).
-4. Publicar no GitHub Pages pelo workflow `.github/workflows/deploy.yml`. **O repositório é
-   privado**: Pages em repositório privado exige plano pago. Tentar ativar
-   (`gh api -X POST repos/kwytechnologie/site-Nilo/pages -f build_type=workflow`); se o GitHub
-   recusar por plano, **não tornar o repositório público sem o Rafael autorizar** e anotar a
-   decisão em `DECISOES.md`.
-5. Passe de qualidade: acessibilidade (foco, contraste, `prefers-reduced-motion`), desempenho
-   (dividir o bundle de 637 KB; carregar o nilômetro sob demanda), e uma varredura de texto
-   contra travessão e cacoetes de IA (skill `avoid-ai-design`).
-6. Atualizar `DECISOES.md` com tudo que ficar para ele decidir.
-7. No fim: nota no Obsidian da empresa (`Documents/KWY TECH/02 - Projetos/Balança H2O/`) escrita
-   na voz dele ("criei", "decidi"), nunca creditando o Claude. Isso só dá para fazer na máquina
-   dele; se a sessão for na nuvem, deixar o texto pronto em `docs/nota-obsidian.md`.
+- Cena do nilômetro conferida em captura, desktop 1440 x 900 e celular 390 x 844, do início ao
+  fundo. Corrigido: a viga sobre a coluna virava uma laje preta na frente da câmera (agora madeira
+  clara e mais fina); o ziguezague dos nichos parecia um fio solto (agora rente à parede, cor de
+  reboco); o rótulo do topo sumia no céu claro do celular (sombra mais alta); o medidor de côvados
+  encostava no cartão de Perguntas (cartão afastado).
+- `marca.html` pronta: 6 logos em fundo claro e escuro, ícones, 8 cores com nome, história e
+  contraste calculado, 4 fontes, tom de voz e regras culturais.
+- Pôsteres sem WebGL capturados da cena: `public/img/poster-rio.jpg`, `poster-poco.jpg`, e a
+  imagem de compartilhamento `og-nilo.jpg` (1200 x 630).
+- Pacote dividido: o carregamento inicial caiu de 637 KB para 24 KB. O 3D (Three.js, 603 KB) baixa
+  depois do texto, e o nilômetro (12 KB) só quando a descida se aproxima. Se o 3D falhar, os
+  pôsteres entram no lugar.
+- Acessibilidade testada: ordem do Tab e foco visível, movimento reduzido (conversa do WhatsApp
+  aparece inteira; a câmera parar de balançar está no código, não foi capturado), modo sem 3D (`?sem3d`). Cartão com foco de teclado
+  nunca fica invisível.
+- Varredura de texto: nenhum travessão; nenhum cacoete fora dos exemplos de "Assim não".
+- **Não publicado**: o Pages não está ativado no repositório privado (ver DECISOES.md, item 1).
+- Nota para o Obsidian pronta em `docs/nota-obsidian.md`.
+
+## O que falta
+
+1. Rafael: decidir publicação (DECISOES.md, item 1) e escolher a logo (item 4).
+2. Com a logo escolhida: trocar no `index.html`, refazer `og-nilo.jpg` e ícone da aba.
+3. Paredes do pavilhão: a textura lê mais como tábua do que como pedra; vale um passe.
+4. Copiar `docs/nota-obsidian.md` para `Documents/KWY TECH/02 - Projetos/Balança H2O/`.

@@ -221,6 +221,8 @@ main { position: relative; z-index: 1; }
 .inscricao { min-height: 150vh; display: flex; align-items: center; padding: 120px var(--gutter); }
 .inscricao--esq { justify-content: flex-start; }
 .inscricao--dir { justify-content: flex-end; }
+/* espaço para o medidor de côvados, que fica fixo na borda direita */
+@media (min-width: 760px) { .inscricao--dir { padding-right: calc(max(14px, var(--gutter) - 24px) + 96px); } }
 .inscricao--centro { justify-content: center; min-height: 130vh; }
 .placa--pedra { background: var(--pedra); border-color: rgb(217 164 65 / 0.25); max-width: 600px; }
 .placa--pedra h2 { color: var(--linho); }
@@ -277,6 +279,8 @@ main { position: relative; z-index: 1; }
 /* ── Reveals (o JS adiciona .is-dentro) ─────────────────────── */
 .js .placa, .js .final, .js .hero > * { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
 .js .is-dentro .placa, .js .is-dentro .final, .js .hero.is-dentro > * { opacity: 1; transform: none; }
+/* quem navega pelo teclado nunca cai num cartão ainda invisível */
+.js .placa:focus-within, .js .final:focus-within, .js .hero > :focus-within { opacity: 1; transform: none; }
 .js .hero.is-dentro > *:nth-child(2) { transition-delay: .08s; }
 .js .hero.is-dentro > *:nth-child(3) { transition-delay: .16s; }
 .js .hero.is-dentro > *:nth-child(4) { transition-delay: .24s; }

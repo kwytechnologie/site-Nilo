@@ -5,10 +5,19 @@ depois marca, depois produto e texto.
 
 ## Trava publicar
 
-1. **GitHub Pages em repositório privado.** O plano gratuito do GitHub só publica Pages de
-   repositório público. Opções: tornar o `site-Nilo` público (o código do site fica visível, sem
-   segredos nele), assinar o GitHub Pro, ou publicar em outro lugar (Cloudflare Pages, Netlify ou
-   o próprio S3 + CloudFront da KWY, que já hospeda o kwytech.com).
+1. **GitHub Pages em repositório privado. O site não está no ar.** Testado em 07/10/2026: o
+   workflow `.github/workflows/deploy.yml` instala e gera o site sem erro, e falha no passo
+   `actions/configure-pages`, porque o Pages não está ativado no `site-Nilo`. No plano gratuito
+   o GitHub só ativa Pages em repositório público. A sessão na nuvem não conseguiu nem tentar
+   ativar (o acesso à API do Pages é bloqueado nela), e o repositório **não** foi tornado
+   público. Caminhos, do mais rápido ao mais caro:
+   - tornar o `site-Nilo` público e ativar em Settings > Pages > Source: GitHub Actions (o código
+     do site fica visível; não há segredo nenhum nele);
+   - assinar o GitHub Pro (Pages em repositório privado);
+   - publicar em outro lugar: Cloudflare Pages ou Netlify (exigem conta), ou o S3 + CloudFront que
+     já hospeda o kwytech.com (nada da AWS foi tocado nesta fase).
+   Depois de ativar, qualquer `git push` na `main` publica sozinho em
+   `https://kwytechnologie.github.io/site-Nilo/`.
 2. **Para onde vai o botão "Quero o Nilo".** Hoje abre o WhatsApp comercial da KWY
    (+55 48 4042-0387) com a mensagem "Quero conhecer o Nilo". Alternativas: número próprio do
    Nilo, lista de espera com formulário (como o Web3Forms do site da KWY) ou pré-venda.
@@ -17,8 +26,11 @@ depois marca, depois produto e texto.
 
 ## Marca
 
-4. **Escolher a logo** entre as 6 opções (A Côvado, B Poço, C Mw, D Cartucho, E Coluna, F Lótus),
-   em `public/marca/` e na página `marca.html`. O site usa a A por enquanto.
+4. **Escolher a logo** entre as 6 opções (A Côvado, B Poço, C Mw, D Cartucho, E Coluna, F Lótus).
+   A prancha `marca.html` mostra todas em fundo claro e escuro, com ícones, cores, fontes, tom de
+   voz e regras culturais. Para ver: `npm run dev` e abrir `/marca.html`. O site usa a A por
+   enquanto. Escolhida a logo, trocar o arquivo no `index.html` (cabeçalho e rodapé), no ícone
+   da aba e refazer `public/img/og-nilo.jpg`.
 5. **A letra Y da família KWY.** Na família de produtos, K é o pneu, W é o gás e Y é a água. O
    Nilo carrega o Y em algum lugar (embalagem, rodapé) ou vira marca independente?
 6. **"Nilo" sozinho ou "Nilo by KWY"** no material de venda.
@@ -46,3 +58,7 @@ depois marca, depois produto e texto.
     mensagens reais aprovadas na Meta?
 15. Nenhuma imagem gerada por IA foi usada: o Higgsfield está com saldo zero. Tudo do site é
     desenhado em código. Se quiser fotos do produto, falta sessão de foto do protótipo.
+16. **Imagem de compartilhamento** (`public/img/og-nilo.jpg`, 1200 x 630): a cena do rio com a logo
+    A e a frase do topo. O endereço dela no `index.html` é relativo; com o domínio definido, vale
+    trocar por endereço completo, que é o que WhatsApp e redes leem melhor.
+

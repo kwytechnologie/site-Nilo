@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { createRiver } from './river.js';
-import { createNilometer } from './nilometer.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
@@ -56,13 +55,14 @@ export async function initStage({ onCovado } = {}) {
   await document.fonts.ready;
 
   const river = createRiver({ quality });
-  let nilo = null; // criado sob demanda, quando a descida se aproxima
+  // O nilômetro é baixado e montado sob demanda, quando a descida se aproxima.
+  let nilo = null, niloLoading = null;
   const ensureNilo = () => {
-    if (!nilo) {
+    niloLoading ??= import('./nilometer.js').then(({ createNilometer }) => {
       nilo = createNilometer({ quality });
       nilo.resize(innerWidth, innerHeight);
       renderer.compile(nilo.scene, nilo.camera);
-    }
+    }).catch((err) => console.warn('[nilo] nilômetro não carregou:', err));
     return nilo;
   };
 
@@ -122,8 +122,10 @@ export async function initStage({ onCovado } = {}) {
       river.update({ p: pRio, portaStart: Math.min(portaStart, 0.98), time, pointer, reduced });
       renderer.render(river.scene, river.camera);
       document.body.dataset.cena = 'rio';
+    } else if (!ensureNilo()) {
+      // ainda baixando: a tela fica escura, como os olhos se acostumando
+      veilOpacity = 1;
     } else {
-      ensureNilo();
       veilOpacity = 1 - smooth(0.0, 0.05, pPoco);
       const r = nilo.update({ p: pPoco, time, pointer, reduced });
       renderer.render(nilo.scene, nilo.camera);

@@ -6,6 +6,8 @@ export default defineConfig({
   base: process.env.NILO_BASE ?? '/site-Nilo/',
   build: {
     target: 'es2020',
+    // o pacote do 3D (Three.js) passa de 500 KB, mas baixa depois do texto, sem travar a página
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
