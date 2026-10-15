@@ -17,6 +17,7 @@ export function createWaterMaterial(opts = {}) {
     uGlitter: { value: opts.glitter ?? 1.0 },
     uScale: { value: opts.scale ?? 1.0 },
     uFlow: { value: opts.flow ?? new THREE.Vector2(0.0, 0.6) },
+    uRiver: { value: opts.river ? 1 : 0 },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms: u,
@@ -29,7 +30,7 @@ export function createWaterMaterial(opts = {}) {
         gl_Position = projectionMatrix * viewMatrix * w;
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime, uFogNear, uFogFar, uGlitter, uScale;
+      uniform float uTime, uFogNear, uFogFar, uGlitter, uScale, uRiver;
       uniform vec3 uSunDir, uSunColor, uDeep, uShallow, uSkyTop, uSkyHorizon, uFogColor;
       uniform vec2 uFlow;
       varying vec3 vWorld;
@@ -37,11 +38,12 @@ export function createWaterMaterial(opts = {}) {
       // Derivada de uma soma de ondas direcionais = normal da superfície.
       vec3 waveNormal(vec2 p, float t) {
         vec2 g = vec2(0.0);
-        float amp = 0.075, freq = 0.19;
+        float amp = 0.075, freq = 0.55;
         vec2 dir = normalize(vec2(0.3, 1.0));
-        for (int i = 0; i < 7; i++) {
-          float ph = dot(dir, p) * freq + t * (0.9 + float(i) * 0.37);
-          g += dir * cos(ph) * amp * freq;
+        for (int i = 0; i < 6; i++) {
+          float ph = dot(dir, p) * freq + sin(p.x * .06 + p.y * .04) * 1.8 + t * (0.9 + float(i) * 0.37);
+          float waveFilter = 1.0 - smoothstep(0.7, 2.8, length(fwidth(p)) * freq);
+          g += dir * cos(ph) * amp * freq * waveFilter;
           // gira a direção e encolhe a onda a cada camada
           dir = mat2(0.8, -0.6, 0.6, 0.8) * dir;
           amp *= 0.62; freq *= 1.85;
@@ -62,14 +64,20 @@ export function createWaterMaterial(opts = {}) {
         vec3 sky = mix(uSkyHorizon, uSkyTop, pow(h, 0.55));
         // halo do sol no reflexo
         float sunAmt = max(dot(R, uSunDir), 0.0);
-        sky = sky * 0.62 + uSunColor * pow(sunAmt, 220.0) * 0.35;
+        sky = sky * 0.82 + uSunColor * pow(sunAmt, 220.0) * 0.35;
 
         float fres = 0.03 + 0.72 * pow(1.0 - max(dot(N, V), 0.0), 5.0);
-        vec3 body = mix(uDeep, uShallow, clamp(0.5 + N.x * 2.5, 0.0, 1.0));
+        float sediment = sin(p.x * .08 + sin(p.y * .025)) * .12;
+        vec3 body = mix(uDeep, uShallow, clamp(0.35 + sediment + N.x * 2.5, 0.0, 1.0));
         vec3 col = mix(body, sky, fres);
+        // Água mais escura junto ao lodo, sem uma cara simulação de reflexão planar.
+        float bankCurve = sin(vWorld.z * .013) * 6.0 + sin(vWorld.z * .039) * 2.4;
+        float bankDistance = min(abs(vWorld.x + 62.0 - bankCurve), abs(vWorld.x - 58.0 - bankCurve));
+        float bankShade = (1.0 - smoothstep(0.0, 11.0, bankDistance)) * uRiver;
+        col = mix(col, uDeep * .55, bankShade * .6);
 
         // rastro de brilho: muitas facetas pequenas refletindo o sol
-        float spec = pow(sunAmt, 1400.0) * 9.0 + pow(sunAmt, 400.0) * 0.5;
+        float spec = pow(sunAmt, 780.0) * 3.2 + pow(sunAmt, 160.0) * 0.22;
         col += uSunColor * spec * uGlitter;
 
         float f = smoothstep(uFogNear, uFogFar, dist);

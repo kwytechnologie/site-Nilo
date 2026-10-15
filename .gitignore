@@ -4,3 +4,6 @@ dist
 *.log
 .vite
 .claude
+.qa/
+art/*.blend1
+art/raw/

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createWaterMaterial } from './water.js';
-import { rng, stoneSmall } from './textures.js';
+import { rng } from './textures.js';
+import { loadModel } from './assets.js';
 
 /*
   O rio. Descemos o Nilo rumo ao norte, ao fim da tarde, até a ponta sul da ilha de Roda,
@@ -11,14 +12,14 @@ import { rng, stoneSmall } from './textures.js';
   Unidade: 1 = 1 metro.
 */
 
-const SUN_DIR = new THREE.Vector3(-0.62, 0.075, -0.78).normalize();
+const SUN_DIR = new THREE.Vector3(-0.62, 0.12, -0.78).normalize();
 const COLORS = {
-  zenith: '#1a2b58',
-  mid: '#56608c',
-  horizon: '#f0a35f',
+  zenith: '#24435b',
+  mid: '#92a6b3',
+  horizon: '#e5ba83',
   sun: '#ffd49a',
-  fog: '#c98d68',
-  land: '#33402a',
+  fog: '#bdad88',
+  land: '#696645',
   silhouette: '#26301f',
   papyrusHead: '#7b8a3e',
   brick: '#a8805a',
@@ -26,80 +27,6 @@ const COLORS = {
 };
 
 export const DOOR = new THREE.Vector3(8, 1.7, -583);
-
-function bend(geo, k) {
-  const p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const y = p.getY(i);
-    p.setX(i, p.getX(i) + k * y * y);
-  }
-  geo.computeVertexNormals();
-  return geo;
-}
-function paint(geo, color) {
-  const c = new THREE.Color(color);
-  const n = geo.attributes.position.count;
-  const arr = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) { arr[i * 3] = c.r; arr[i * 3 + 1] = c.g; arr[i * 3 + 2] = c.b; }
-  geo.setAttribute('color', new THREE.BufferAttribute(arr, 3));
-  return geo;
-}
-// Garante os mesmos atributos antes de juntar geometrias.
-function clean(geo) {
-  const g = geo.index ? geo.toNonIndexed() : geo;
-  for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'color'].includes(k)) g.deleteAttribute(k);
-  return g;
-}
-
-function papyrusClump(rand) {
-  const parts = [];
-  const stems = 6 + Math.floor(rand() * 4);
-  for (let i = 0; i < stems; i++) {
-    const h = 2.2 + rand() * 1.6;
-    const stem = new THREE.CylinderGeometry(0.025, 0.05, h, 4, 3);
-    stem.translate(0, h / 2, 0);
-    bend(stem, (rand() - 0.5) * 0.06);
-    const head = new THREE.ConeGeometry(0.42 + rand() * 0.2, 0.55, 7, 1, true);
-    head.rotateX(Math.PI);
-    head.translate(0, h + 0.15, 0);
-    const g1 = paint(clean(stem), COLORS.silhouette);
-    const g2 = paint(clean(head), COLORS.papyrusHead);
-    const tilt = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler((rand() - 0.5) * 0.35, 0, (rand() - 0.5) * 0.35));
-    const off = new THREE.Matrix4().makeTranslation((rand() - 0.5) * 0.9, 0, (rand() - 0.5) * 0.9);
-    const m = off.multiply(tilt);
-    g1.applyMatrix4(m); g2.applyMatrix4(m);
-    parts.push(g1, g2);
-  }
-  return mergeGeometries(parts);
-}
-
-function palm(rand) {
-  const parts = [];
-  const h = 9 + rand() * 6;
-  const lean = (rand() - 0.5) * 0.025;
-  const trunk = new THREE.CylinderGeometry(0.16, 0.26, h, 6, 6);
-  trunk.translate(0, h / 2, 0);
-  bend(trunk, lean);
-  parts.push(paint(clean(trunk), '#3b3022'));
-  const topX = lean * h * h;
-  const fronds = 11 + Math.floor(rand() * 4);
-  for (let i = 0; i < fronds; i++) {
-    const len = 3.6 + rand() * 1.4;
-    const f = new THREE.PlaneGeometry(len, 0.7, 6, 1);
-    f.translate(len / 2, 0, 0);
-    const p = f.attributes.position;
-    for (let k = 0; k < p.count; k++) {
-      const x = p.getX(k);
-      p.setY(k, p.getY(k) * (1 - x / len) * 1.2 - 0.18 * x * x * (0.6 + rand() * 0.1));
-    }
-    f.rotateX(Math.PI / 2 * (0.75 + rand() * 0.2));
-    f.rotateZ(0.35 + rand() * 0.35);
-    f.rotateY((i / fronds) * Math.PI * 2 + rand() * 0.3);
-    f.translate(topX, h, 0);
-    parts.push(paint(clean(f), COLORS.silhouette));
-  }
-  return mergeGeometries(parts);
-}
 
 function felucca() {
   const group = new THREE.Group();
@@ -177,50 +104,6 @@ function slenderMinaret(mat, h = 34) {
 }
 
 // O pavilhão do nilômetro na ponta da ilha de Roda: corpo de pedra e cúpula cônica.
-function nilometerKiosk() {
-  const g = new THREE.Group();
-  const stone = new THREE.MeshLambertMaterial({ map: stoneSmall({ seed: 5 }), color: '#d6bb92' });
-  stone.map.repeat.set(3, 2);
-  const W = 10, H = 7;
-  // corpo com a porta em arco ogival recortada
-  const front = new THREE.Shape();
-  front.moveTo(-W / 2, 0); front.lineTo(W / 2, 0); front.lineTo(W / 2, H); front.lineTo(-W / 2, H); front.lineTo(-W / 2, 0);
-  const door = new THREE.Path();
-  door.moveTo(-1.2, 0); door.lineTo(-1.2, 2.4);
-  door.quadraticCurveTo(-1.15, 3.6, 0, 4.1);
-  door.quadraticCurveTo(1.15, 3.6, 1.2, 2.4);
-  door.lineTo(1.2, 0); door.lineTo(-1.2, 0);
-  front.holes.push(door);
-  const frontGeo = new THREE.ExtrudeGeometry(front, { depth: 0.9, bevelEnabled: false });
-  const frontMesh = new THREE.Mesh(frontGeo, stone);
-  frontMesh.position.set(0, 0, W / 2 - 0.9);
-  g.add(frontMesh);
-  for (const [x, z, ry] of [[-W / 2 + 0.45, 0, Math.PI / 2], [W / 2 - 0.45, 0, Math.PI / 2], [0, -W / 2 + 0.45, 0]]) {
-    const wall = new THREE.Mesh(new THREE.BoxGeometry(W, H, 0.9), stone);
-    wall.position.set(x, H / 2, z);
-    wall.rotation.y = ry;
-    g.add(wall);
-  }
-  // interior escuro atrás da porta
-  const dark = new THREE.Mesh(new THREE.BoxGeometry(W - 1.9, H - 0.2, W - 1.9), new THREE.MeshBasicMaterial({ color: '#06090b', side: THREE.BackSide }));
-  dark.position.y = H / 2;
-  g.add(dark);
-  // cornija, tambor e cúpula cônica
-  const cornice = new THREE.Mesh(new THREE.BoxGeometry(W + 0.6, 0.6, W + 0.6), stone);
-  cornice.position.y = H + 0.3;
-  g.add(cornice);
-  const drum = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.4, 2.2, 12), new THREE.MeshLambertMaterial({ color: '#6a5240' }));
-  drum.position.y = H + 1.7;
-  g.add(drum);
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(3.9, 7.6, 12), new THREE.MeshLambertMaterial({ color: '#6f6a62', flatShading: true }));
-  cone.position.y = H + 2.8 + 3.8;
-  g.add(cone);
-  const finial = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), new THREE.MeshLambertMaterial({ color: '#d9a441', emissive: '#6b4a10' }));
-  finial.position.y = H + 2.8 + 7.7;
-  g.add(finial);
-  return g;
-}
-
 function skyMaterial() {
   return new THREE.ShaderMaterial({
     side: THREE.BackSide,
@@ -251,7 +134,7 @@ function skyMaterial() {
         f = f * f * (3.0 - 2.0 * f);
         return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
       }
-      float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { s += a * noise(p); p *= 2.03; a *= 0.5; } return s; }
+      float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 3; i++) { s += a * noise(p); p *= 2.03; a *= 0.5; } return s; }
       void main() {
         vec3 d = normalize(vDir);
         float h = max(d.y, 0.0);
@@ -278,7 +161,8 @@ function skyMaterial() {
   });
 }
 
-export function createRiver({ quality }) {
+export async function createRiver({ quality }) {
+  const [vegetation, pavilion] = await Promise.all([loadModel('vegetation'), loadModel('pavilion')]);
   const rand = rng(1861);
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(COLORS.fog, 70, 1300);
@@ -288,15 +172,15 @@ export function createRiver({ quality }) {
   sky.frustumCulled = false;
   scene.add(sky);
 
-  scene.add(new THREE.HemisphereLight('#ffd7a8', '#2c3a2e', 1.15));
-  const sun = new THREE.DirectionalLight('#ffb36b', 2.1);
+  scene.add(new THREE.HemisphereLight('#c8e1ef', '#4f5134', 1.55));
+  const sun = new THREE.DirectionalLight('#ffe0ac', 2.4);
   sun.position.copy(SUN_DIR).multiplyScalar(500);
   scene.add(sun);
 
   // Água
   const waterMat = createWaterMaterial({
-    sunDir: SUN_DIR, deep: '#0f3a3e', shallow: '#2a6a63', skyTop: COLORS.mid, skyHorizon: COLORS.horizon,
-    sunColor: COLORS.sun, fogColor: COLORS.fog, fogNear: 70, fogFar: 1300, scale: 1.0,
+    sunDir: SUN_DIR, deep: '#173e3b', shallow: '#527266', skyTop: COLORS.mid, skyHorizon: COLORS.horizon,
+    sunColor: COLORS.sun, fogColor: COLORS.fog, fogNear: 70, fogFar: 1300, scale: 1.0, river: true,
   });
   const water = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000, 1, 1), waterMat);
   water.rotation.x = -Math.PI / 2;
@@ -306,16 +190,20 @@ export function createRiver({ quality }) {
   // Margens: oeste (esquerda) e leste (direita). A ilha de Roda divide o rio no fim.
   const landMat = new THREE.MeshLambertMaterial({ color: COLORS.land });
   const WEST = -62, EAST = 58;
-  const west = new THREE.Mesh(new THREE.BoxGeometry(3000, 1, 4000), landMat);
-  west.position.set(WEST - 1500, 0.2, -1200);
-  const east = west.clone();
-  east.position.set(EAST + 1500, 0.2, -1200);
-  scene.add(west, east);
-  const mudMat = new THREE.MeshLambertMaterial({ color: '#4d3f2c' });
+  const bankEdge = (z, side) => (side < 0 ? WEST : EAST) + Math.sin(z * .013) * 6 + Math.sin(z * .039) * 2.4;
+  // Perfil inclinado com lodo molhado e areia seca; pequenas curvas quebram as margens retas.
   for (const [x, s] of [[WEST, -1], [EAST, 1]]) {
-    const mud = new THREE.Mesh(new THREE.BoxGeometry(6, 0.6, 4000), mudMat);
-    mud.position.set(x - s * 2, 0.05, -1200);
-    scene.add(mud);
+    const geo = new THREE.PlaneGeometry(1600, 2400, 5, 120);
+    const positions=geo.attributes.position, colors=[];
+    const tones=['#273d32','#4d5940','#807650','#98865d','#b49a71','#bca57d'].map(c=>new THREE.Color(c));
+    for(let i=0;i<positions.count;i++) {
+      const col=i%6, z=positions.getY(i)-900;
+      const offsets=[-5,0,5,18,120,1600], heights=[-.6,.12,.75,1.5,2.1,4];
+      positions.setXYZ(i,bankEdge(z,s)+s*offsets[col],heights[col]+(col>1?Math.sin(z*.1)*.16:0),z);
+      const c=tones[col];colors.push(c.r,c.g,c.b);
+    }
+    geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.computeVertexNormals();
+    scene.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide})));
   }
 
   // Planalto e pirâmides de Gizé ao longe, a oeste.
@@ -371,45 +259,38 @@ export function createRiver({ quality }) {
   }
   scene.add(blocks);
 
-  // Papiro na beira d'água e tamareiras atrás.
+  // Modelos do Blender reutilizados em lotes espaciais; cada lote pode ser descartado
+  // pelo frustum sem enviar todas as plantas do percurso à GPU.
   const vegMat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-  const papyrusGeos = [papyrusClump(rand), papyrusClump(rand), papyrusClump(rand)];
-  const perVariant = Math.ceil(quality.papyrus / papyrusGeos.length);
-  for (const geo of papyrusGeos) {
-    const inst = new THREE.InstancedMesh(geo, vegMat, perVariant);
-    for (let i = 0; i < perVariant; i++) {
-      const side = rand() < 0.5 ? -1 : 1;
-      const edge = side < 0 ? WEST : EAST;
-      const z = 80 - rand() * 760;
-      // perto da ilha de Roda não há papiro na margem do caminho da câmera
-      p.set(edge - side * (1.5 + rand() * 7), 0, z);
-      const sc = 0.8 + rand() * 0.7;
-      s.set(sc, sc * (0.85 + rand() * 0.4), sc);
-      q.setFromEuler(new THREE.Euler(0, rand() * Math.PI * 2, 0));
-      m.compose(p, q, s);
-      inst.setMatrixAt(i, m);
+  const wind = { value: 0 };
+  vegMat.onBeforeCompile = shader => {
+    shader.uniforms.uWind = wind;
+    shader.vertexShader = 'uniform float uWind;\n' + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\nvec4 wp=vec4(position,1.0);\n#ifdef USE_INSTANCING\nwp=instanceMatrix*wp;\n#endif\nfloat flex=pow(clamp(position.y/12.,0.,1.),2.); transformed.x+=sin(uWind*.65+wp.x*.17+wp.z*.07)*flex*.22;');
+  };
+  const palmGeos = ['PalmA','PalmB'].map(name => vegetation.getObjectByName(name).geometry);
+  const papyrusGeo = vegetation.getObjectByName('Papyrus').geometry;
+  const groups=6, groupLength=135;
+  function plantBatches(geometries, total, reeds) {
+    for(let chunk=0;chunk<groups;chunk++) for(let variant=0;variant<geometries.length;variant++) {
+      const count=Math.ceil(total/groups/geometries.length);
+      const batch=new THREE.InstancedMesh(geometries[variant],vegMat,count);
+      for(let i=0;i<count;i++) {
+        const side=rand()<.5?-1:1,z=95-chunk*groupLength-rand()*groupLength;
+        const edge=bankEdge(z,side);
+        const offset=reeds?-.8+rand()*3.5:8+rand()*30;
+        p.set(edge+side*offset,reeds?.08:1.0,z);
+        const scale=reeds?.75+rand()*.6:.8+rand()*.4;
+        s.set(scale,scale*(.9+rand()*.18),scale);
+        q.setFromEuler(new THREE.Euler(0,rand()*Math.PI*2,0));
+        m.compose(p,q,s);batch.setMatrixAt(i,m);
+      }
+      batch.computeBoundingSphere();scene.add(batch);
     }
-    scene.add(inst);
   }
-  const palmGeos = [palm(rand), palm(rand), palm(rand)];
-  const palmsPer = Math.ceil(quality.palms / palmGeos.length);
-  for (const geo of palmGeos) {
-    const inst = new THREE.InstancedMesh(geo, vegMat, palmsPer);
-    for (let i = 0; i < palmsPer; i++) {
-      const side = rand() < 0.5 ? -1 : 1;
-      const edge = side < 0 ? WEST : EAST;
-      // tamareiras em bosques
-      const grove = Math.floor(rand() * 12);
-      const z = 60 - grove * 62 - rand() * 40;
-      p.set(edge + side * (8 + rand() * 70), 0.6, z);
-      const sc = 0.85 + rand() * 0.35;
-      s.set(sc, sc, sc);
-      q.setFromEuler(new THREE.Euler(0, rand() * Math.PI * 2, 0));
-      m.compose(p, q, s);
-      inst.setMatrixAt(i, m);
-    }
-    scene.add(inst);
-  }
+  plantBatches([papyrusGeo],quality.mobile?210:510,true);
+  plantBatches(palmGeos,quality.mobile?60:132,false);
 
   // Shaduf: a alavanca de tirar água do rio, na margem oeste.
   const woodMat = new THREE.MeshLambertMaterial({ color: '#2f261c' });
@@ -443,11 +324,22 @@ export function createRiver({ quality }) {
   }
 
   // Ilha de Roda e o pavilhão do nilômetro na ponta sul.
-  const island = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1.2, 40), landMat);
-  island.scale.set(34, 1, 140);
-  island.position.set(DOOR.x, 0.1, DOOR.z - 120);
+  const islandGeometry = new THREE.BufferGeometry(), islandVertices=[], islandColors=[], islandIndices=[];
+  const islandTones=['#72704c','#78704b','#666442','#3d4d37'].map(c=>new THREE.Color(c));
+  for(let ring=0;ring<4;ring++) for(let i=0;i<64;i++) {
+    const theta=i/64*Math.PI*2;
+    const radius=[0,.72,.97,1.05][ring]*(1+Math.sin(theta*7)*.012+Math.sin(theta*13)*.008);
+    islandVertices.push(Math.cos(theta)*34*radius,[1.2,1.05,.2,-.65][ring],Math.sin(theta)*140*radius);
+    const c=islandTones[ring];islandColors.push(c.r,c.g,c.b);
+    if(ring<3){const a=ring*64+i,b=ring*64+(i+1)%64;islandIndices.push(a,b,a+64,b,b+64,a+64);}
+  }
+  islandGeometry.setAttribute('position',new THREE.Float32BufferAttribute(islandVertices,3));
+  islandGeometry.setAttribute('color',new THREE.Float32BufferAttribute(islandColors,3));
+  islandGeometry.setIndex(islandIndices);islandGeometry.computeVertexNormals();
+  const island = new THREE.Mesh(islandGeometry,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}));
+  island.position.set(DOOR.x, 0, DOOR.z - 120);
   scene.add(island);
-  const kiosk = nilometerKiosk();
+  const kiosk = pavilion;
   kiosk.scale.setScalar(1.35);
   kiosk.position.set(DOOR.x, 0.6, DOOR.z - 5 * 1.35);
   // luz quente na porta, para o olhar achar o nilômetro
@@ -457,10 +349,18 @@ export function createRiver({ quality }) {
   scene.add(kiosk);
   // cais de pedra na frente da porta
   const quay = new THREE.Mesh(new THREE.BoxGeometry(14, 0.8, 8), new THREE.MeshLambertMaterial({ color: '#b48e62' }));
-  quay.position.set(DOOR.x, 0.3, DOOR.z + 3);
+  quay.position.set(DOOR.x, 0.6, DOOR.z + 3);
   scene.add(quay);
+  const islandReeds=new THREE.InstancedMesh(papyrusGeo,vegMat,quality.mobile?35:70);
+  for(let i=0;i<islandReeds.count;i++) {
+    const th=rand()*Math.PI*2;
+    p.set(DOOR.x+Math.cos(th)*32,.15,DOOR.z-120+Math.sin(th)*133);
+    const sc=.65+rand()*.4;s.setScalar(sc);q.setFromAxisAngle(new THREE.Vector3(0,1,0),rand()*6.28);
+    islandReeds.setMatrixAt(i,m.compose(p,q,s));
+  }
+  islandReeds.computeBoundingSphere();scene.add(islandReeds);
   for (const dx of [-11, 13, -15, 18]) {
-    const geo = palmGeos[Math.abs(dx) % 3];
+    const geo = palmGeos[Math.abs(dx) % palmGeos.length];
     const tree = new THREE.Mesh(geo, vegMat);
     tree.position.set(DOOR.x + dx, 0.6, DOOR.z - 8 - Math.abs(dx));
     scene.add(tree);
@@ -494,6 +394,7 @@ export function createRiver({ quality }) {
     const t = reduced ? 0 : time;
     waterMat.uniforms.uTime.value = t * 0.55;
     sky.material.uniforms.uTime.value = t;
+    wind.value = t;
     sky.position.copy(camera.position);
 
     let travel = Math.min(p / portaStart, 1);
@@ -502,7 +403,7 @@ export function createRiver({ quality }) {
 
     const z = THREE.MathUtils.lerp(34, travelEnd.z, travel);
     const sway = Math.sin(travel * 9.0) * 7 + Math.sin(travel * 3.1) * 5;
-    const bob = Math.sin(t * 0.9) * 0.12 + Math.sin(t * 1.7) * 0.05;
+    const bob = Math.sin(t * 0.9) * 0.035;
     camera.position.set(THREE.MathUtils.lerp(8 + sway * 0.6, travelEnd.x, Math.pow(travel, 4)), 3.2 + bob, z);
     // olhar: rio adiante, puxando um pouco para o pôr do sol no começo
     const yaw = THREE.MathUtils.lerp(0.32, 0.0, Math.min(travel * 2.2, 1)) + Math.cos(travel * 9.0) * 0.05;
@@ -526,7 +427,7 @@ export function createRiver({ quality }) {
 
     for (const b of boats) {
       const u = b.userData;
-      b.position.z = u.z - (t * u.speed) % 60;
+      b.position.z = u.z + Math.sin(t * .025 + u.phase) * 5;
       b.position.y = Math.sin(t * 1.1 + u.phase) * 0.08;
       b.rotation.z = Math.sin(t * 0.8 + u.phase) * 0.025;
     }

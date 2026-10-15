@@ -5,31 +5,65 @@ const AR = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 const toArabic = (n) => String(n).split('').map((d) => AR[+d] ?? d).join('');
 
 export function initUI() {
-  // Rolagem suave (desligada para quem pede menos movimento).
-  let lenis = null;
-  if (!reduced.matches) {
-    lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 0.9, smoothWheel: true });
-    const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
-    requestAnimationFrame(raf);
+  // Touch usa a rolagem nativa. Desktop só agenda RAF enquanto há interpolação.
+  const touch = matchMedia('(any-pointer: coarse)');
+  let lenis = null, lenisFrame = 0, lenisClock = 0, lastLenisNow = 0;
+  function requestLenisFrame() {
+    if (lenis && !lenisFrame && !document.hidden) lenisFrame = requestAnimationFrame(tickLenis);
   }
+  function tickLenis(now) {
+    lenisFrame = 0;
+    if (!lenis || document.hidden) return;
+    // O relógio não inclui o período ocioso entre dois gestos.
+    lenisClock += lastLenisNow ? Math.min(now - lastLenisNow, 50) : 1000 / 60;
+    lastLenisNow = now;
+    lenis.raf(lenisClock);
+    if (lenis.isScrolling === 'smooth') requestLenisFrame();
+    else lastLenisNow = 0;
+  }
+  function syncScrolling() {
+    const enabled = !reduced.matches && !touch.matches && !navigator.maxTouchPoints && !document.hidden;
+    if (enabled && !lenis) {
+      lenisClock = lastLenisNow = 0;
+      lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 0.9, smoothWheel: true, syncTouch: false, autoRaf: false });
+      lenis.on('virtual-scroll', ({ event }) => { if (event.type === 'wheel') requestLenisFrame(); });
+    } else if (!enabled && lenis) {
+      cancelAnimationFrame(lenisFrame);
+      lenisFrame = lastLenisNow = 0;
+      lenis.destroy();
+      lenis = null;
+    }
+  }
+  reduced.addEventListener('change', syncScrolling);
+  touch.addEventListener('change', syncScrolling);
+  document.addEventListener('visibilitychange', syncScrolling);
+  syncScrolling();
 
   // Links internos passam pela rolagem suave.
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (e) => {
       const id = a.getAttribute('href');
-      const el = id.length > 1 && document.querySelector(id);
+      let el;
+      try { el = id.length > 1 && document.getElementById(decodeURIComponent(id.slice(1))); }
+      catch { return; }
       if (!el) return;
       e.preventDefault();
       closeMenu();
-      if (lenis) lenis.scrollTo(el, { offset: -20, duration: 1.6 });
-      else el.scrollIntoView();
+      if (lenis) {
+        lenis.scrollTo(el, { offset: -20, duration: 1.6 });
+        requestLenisFrame();
+      } else el.scrollIntoView({ behavior: 'instant' });
       history.replaceState(null, '', id);
     });
   });
 
   // Navegação fica sólida depois do topo.
   const nav = document.querySelector('[data-nav]');
-  const onScroll = () => nav.classList.toggle('is-solida', scrollY > 40);
+  let solid = null;
+  const onScroll = () => {
+    const next = scrollY > 40;
+    if (next !== solid) { solid = next; nav.classList.toggle('is-solida', next); }
+  };
   addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
@@ -53,7 +87,10 @@ export function initUI() {
   const hero = document.querySelector('.hero');
   requestAnimationFrame(() => hero.classList.add('is-dentro'));
   const io = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) e.target.classList.add('is-dentro');
+    for (const e of entries) if (e.isIntersecting) {
+      e.target.classList.add('is-dentro');
+      io.unobserve(e.target);
+    }
   }, { threshold: 0.18 });
   document.querySelectorAll('.parada, .inscricao').forEach((el) => io.observe(el));
 
@@ -72,19 +109,24 @@ export function initUI() {
   const ar = medidor.querySelector('[data-medidor-ar]');
   const num = medidor.querySelector('[data-medidor-num]');
   const agua = medidor.querySelector('[data-medidor-agua]');
-  let last = -1;
-  function onCovado({ covado }, p) {
-    const show = p > 0.06 && p < 0.97;
-    medidor.classList.toggle('is-visivel', show);
+  let last = -1, visible = false, ideal = false, scale = null;
+  function onCovado(reading, p) {
+    const valid = Number.isFinite(reading?.covado);
+    const show = valid && p > 0.06 && p < 0.97;
+    if (show !== visible) { visible = show; medidor.classList.toggle('is-visivel', show); }
+    if (!show) return;
+    const covado = Math.min(16, Math.max(0, reading.covado));
     const n = Math.round(covado);
     if (n !== last) {
       last = n;
       ar.textContent = toArabic(n);
       num.textContent = `${n}`;
     }
-    agua.style.transform = `scaleY(${(covado / 16).toFixed(3)})`;
-    medidor.classList.toggle('is-ideal', covado >= 15.5);
+    const nextScale = (covado / 16).toFixed(3);
+    if (nextScale !== scale) { scale = nextScale; agua.style.transform = `scaleY(${scale})`; }
+    const nextIdeal = covado >= 15.5;
+    if (nextIdeal !== ideal) { ideal = nextIdeal; medidor.classList.toggle('is-ideal', ideal); }
   }
 
-  return { lenis, onCovado };
+  return { get lenis() { return lenis; }, onCovado };
 }

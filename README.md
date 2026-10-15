@@ -13,3 +13,5 @@ npm run dev
 - Estado do trabalho e próximos passos: `docs/HANDOFF.md`.
 - Decisões em aberto: `DECISOES.md`.
 - Pesquisa histórica com fontes: `docs/pesquisa-nilometro.md`.
+- Modelos Blender e como editar/exportar: `art/README.md`.
+- Revisão 3D de 15/10/2026 e resultados de desempenho: `docs/BLENDER-2026-10-15.md`.

@@ -1,5 +1,11 @@
 # Passagem de bastão: site do Nilo
 
+## Atualização de 15/10/2026
+
+O 3D foi revisado no Blender, com modelos editáveis em `art/nilo.blend` e GLB em `public/models/`. O rio e o nilômetro agora são carregados assincronamente; materiais, vegetação, iluminação e runtime mobile foram atualizados. Para o estado atual, ler primeiro `docs/BLENDER-2026-10-15.md` e `art/README.md`. O relato abaixo preserva o histórico de 07/10 e não descreve mais toda a implementação 3D atual.
+
+O repositório é público e o site é publicado pelo workflow em https://kwytechnologie.github.io/site-Nilo/. Falta validação em telefone físico e aprovação visual do usuário. Não houve alteração dos textos do produto, das opções de logo ou de serviços AWS.
+
 Estado em 07/10/2026, ao fim da primeira sessão (local). Este arquivo é para a próxima sessão
 (nuvem) continuar sem perder contexto. Ler inteiro antes de mexer.
 
