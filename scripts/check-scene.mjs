@@ -116,7 +116,7 @@ try {
     checks.push({name:'context loss fallback',pass:await evaluate("document.documentElement.classList.contains('sem-3d') && document.documentElement.classList.contains('no-poco')")});
     await send('Page.navigate',{url:base+'?sem3d#perguntas'});await sleep(600);
     checks.push({name:'sem3d fallback',pass:await evaluate("document.documentElement.classList.contains('sem-3d') && document.documentElement.classList.contains('no-poco')")});
-    await send('Network.setBlockedURLs',{urls:['*nilometer.glb']});
+    await send('Network.setBlockedURLs',{urls:['*nilometer.glb*']});
     await send('Page.navigate',{url:base+'?debug3d&failed=1#perguntas'});await sleep(3500);
     checks.push({name:'failed model keeps readable poster',pass:await evaluate("__niloDebug.fallback && !__niloDebug.loading && !!__niloDebug.error && getComputedStyle(document.querySelector('main')).visibility!=='hidden'")});
   }

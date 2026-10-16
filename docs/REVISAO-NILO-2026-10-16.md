@@ -36,7 +36,7 @@ No Blender, selecione a cena no seletor superior. `Numpad 0` mostra a câmera; a
 
 Geradores: `art/build_nilo_v2.py`, `art/build_guards.py`, depois `art/preview_nilo_v2.py`. Para reproduzir o conjunto do zero, comece em um arquivo novo e execute no Text Editor do Blender ou pelo MCP. **Recriar substitui as cenas geradas; salve uma cópia antes de editar manualmente.** O gerador dos guardas recusa a substituição quando os objetos estão ligados a outras cenas, como ocorre na prévia integrada. A raiz absoluta `ROOT` precisa ser ajustada se a pasta mudar. `art/prepare_wood.py` gera os mapas de madeira; `scripts/bake-ornaments.mjs` recupera os desenhos Canvas originais com Chrome local. As texturas prontas já estão versionadas.
 
-O navegador carrega `nilometer.glb`, `guardians.glb` e `vegetation.glb`, com compressão Meshopt e imagens WebP. `pavilion.glb` permanece como arquivo legado, sem uso nesta versão. As animações de abertura são aplicadas aos mesmos pivôs do Blender pelo scroll.
+O navegador carrega `nilometer.glb`, `guardians.glb` e `vegetation.glb`, com compressão Meshopt e imagens WebP. Uma revisão na URL dos modelos impede o reaproveitamento de um GLB antigo incompatível com os novos pivôs. `pavilion.glb` permanece como arquivo legado, sem uso nesta versão. As animações de abertura são aplicadas aos mesmos pivôs do Blender pelo scroll.
 
 ## Revisão humana
 
@@ -46,7 +46,7 @@ O navegador carrega `nilometer.glb`, `guardians.glb` e `vegetation.glb`, com com
 
 ## Validação final
 
-Build Vite concluído. Há um aviso de tamanho do chunk 3D: 704,82 KB minificado, aproximadamente 184,12 KB gzip. Esse módulo continua carregado separadamente do conteúdo inicial.
+Build Vite concluído. Há um aviso de tamanho do chunk 3D: 704,85 KB minificado, aproximadamente 184,14 KB gzip. Esse módulo continua carregado separadamente do conteúdo inicial.
 
 Arquitetura: **12.256 triângulos**. Guardas: **9.787 por personagem**, 19.574 no par. Os três GLB carregados somam **1.386.632 bytes**, aproximadamente 1,39 MB. O arquivo Blender inclui as texturas e as cenas de prévia.
 
