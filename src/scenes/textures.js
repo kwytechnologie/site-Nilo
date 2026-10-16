@@ -233,7 +233,7 @@ export function columnTexture({ cubits = 16, pxPerCubit = 128, seed = 11 } = {})
 
 /**
  * Pintura da cúpula de Roda: arabescos florais em dourado, azul-acinzentado e azul-noite, com
- * medalhão central azul e ouro (cores medidas em fotos, ver docs/pesquisa). No cone, v = 1 é o
+ * medalhão central azul e ouro (paleta interpretada das referências, não medição do objeto). No cone, v = 1 é o
  * ápice: as faixas de cima viram o medalhão.
  */
 export function domeTexture({ seed = 21 } = {}) {

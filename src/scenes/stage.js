@@ -2,7 +2,19 @@ import * as THREE from 'three';
 import { createRiver } from './river.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
-const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
+
+// Um único fator temporal para progresso, fronteira e lente: resize não altera
+// isoladamente o denominador de approach. Função pura de DOM/assets para QA Node.
+export function advanceJourney(state, target, portaStart, viewRatio, dt, rate, immediate=false) {
+  const k=immediate?1:1-Math.exp(-Math.max(0,Math.min(dt,.05))*rate);
+  state.journey+=(target-state.journey)*k;
+  state.portaStart+=(portaStart-state.portaStart)*k;
+  state.viewRatio+=(viewRatio-state.viewRatio)*k;
+  const settled=Math.abs(target-state.journey)<1e-7 &&
+    Math.abs(portaStart-state.portaStart)<1e-7 && Math.abs(viewRatio-state.viewRatio)<1e-7;
+  if(settled){state.journey=target;state.portaStart=portaStart;state.viewRatio=viewRatio;}
+  return settled;
+}
 
 async function withTimeout(work, ms, label) {
   let timer;
@@ -14,11 +26,12 @@ async function withTimeout(work, ms, label) {
   } finally { clearTimeout(timer); }
 }
 
-/** Um canvas; layout medido somente quando muda, cenas preparadas fora do scroll. */
+/** Um canvas e uma cena raiz; layout e preparação ficam fora do scroll. */
 export async function initStage({ onCovado } = {}) {
   const root = document.documentElement;
   const canvas = document.getElementById('stage');
   const veil = document.querySelector('.stage__veil');
+  if (veil) veil.style.opacity = '0';
   const rio = document.getElementById('rio');
   const poco = document.getElementById('nilometro');
   const porta = document.querySelector('[data-porta]');
@@ -33,15 +46,19 @@ export async function initStage({ onCovado } = {}) {
   let dprCap = maxDpr(innerWidth);
   quality.dpr = dprCap;
 
-  let renderer = null, river = null, nilo = null, niloPromise = null;
-  let riverLoading = !params.has('sem3d'), niloLoading = false, failed = false;
+  let renderer = null, river = null, nilo = null;
+  let riverLoading = !params.has('sem3d'), failed = false;
   let failure = null, shaderError = false, activeScene = 'rio';
-  let raf = 0, idle = null, layoutDirty = true, snap = true;
+  let raf = 0, layoutDirty = true, snap = true;
   let scroll = window.scrollY, lastNow = 0, elapsed = 0, pRio = 0, pPoco = 0;
+  const navigation = { journey: 0, portaStart: .98, viewRatio: innerWidth / Math.max(1,innerHeight) };
+  let layoutTransition = false;
   let frameMs = 0, averageMs = 1000 / 60, slowMs = 0, fastMs = 0;
   let adaptAfter = 0, warmFrames = 90;
-  let posterShown = null, posterPoco = null, bodyScene = null, veilValue = null, meterActive = false;
+  let posterShown = null, posterPoco = null, bodyScene = null, meterActive = false;
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+  const frameState = { p: 0, pInterior: 0, inInterior: false, portaStart: .98, time: 0, pointer, reduced: true, viewRatio: navigation.viewRatio };
+  const hiddenMeter = { covado: 0 };
   const layout = { width: 0, height: 0, rioTop: 0, rioSpan: 1, pocoTop: Infinity, pocoSpan: 1, pocoBottom: Infinity, portaStart: 0.98 };
 
   // Getters: nenhuma coleta extra por frame, e nenhuma API global sem opt-in.
@@ -54,12 +71,18 @@ export async function initStage({ onCovado } = {}) {
       get dpr() { return renderer?.getPixelRatio() ?? 0; },
       get activeScene() { return activeScene; },
       get ready() { return !failed && !!(activeScene === 'rio' ? river : nilo); },
-      get loading() { return riverLoading || niloLoading; },
+      get loading() { return riverLoading; },
       get scenes() { return { rio: !!river, poco: !!nilo }; },
       get frameMs() { return frameMs; },
       get averageFrameMs() { return averageMs; },
       get fallback() { return posterShown; },
       get error() { return failure; },
+      get cameraWorldPosition() { return river?.camera.getWorldPosition(new THREE.Vector3()).toArray() ?? null; },
+      get cameraWorldQuaternion() { return river?.camera.getWorldQuaternion(new THREE.Quaternion()).toArray() ?? null; },
+      get cameraFov() { return river?.camera.fov ?? null; },
+      get doorAngles() { return nilo?.doorAngles ?? null; },
+      get journey() { return navigation.journey; },
+      get approach() { return clamp01((Math.min(navigation.journey,1)-navigation.portaStart)/(1-navigation.portaStart)); },
     };
   }
 
@@ -74,14 +97,6 @@ export async function initStage({ onCovado } = {}) {
     slowMs = fastMs = 0;
   }
 
-  function setVeil(opacity) {
-    const value = opacity.toFixed(3);
-    if (value !== veilValue) {
-      veilValue = value;
-      if (veil) veil.style.opacity = value;
-    }
-  }
-
   function showPoster(show) {
     if (show !== posterShown) {
       posterShown = show;
@@ -90,27 +105,18 @@ export async function initStage({ onCovado } = {}) {
   }
 
   function hideMeter() {
-    if (meterActive) onCovado?.({ covado: 0 }, 0);
+    if (meterActive) onCovado?.(hiddenMeter, 0);
     meterActive = false;
-  }
-
-  function cancelPrefetch() {
-    if (idle === null) return;
-    if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idle);
-    else clearTimeout(idle);
-    idle = null;
   }
 
   function fail(error) {
     if (failed) return;
     failed = true;
     failure = error?.message ?? String(error);
-    riverLoading = niloLoading = false;
-    cancelPrefetch();
+    riverLoading = false;
     cancelAnimationFrame(raf);
     raf = 0;
     showPoster(true);
-    setVeil(0);
     hideMeter();
     renderer?.dispose();
     console.warn('[nilo] 3D desativado:', error);
@@ -124,12 +130,16 @@ export async function initStage({ onCovado } = {}) {
     const width = Math.max(1, innerWidth), height = Math.max(1, innerHeight);
     const r = rio.getBoundingClientRect(), p = poco.getBoundingClientRect();
     const doorTop = porta?.getBoundingClientRect().top ?? r.bottom - height;
+    const rioSpan = Math.max(1, p.top - r.top);
+    const portaStart = Math.min(.98,Math.max(.01,(doorTop-r.top)/rioSpan));
+    const pocoSpan = Math.max(1,p.height-height);
     const resized = width !== layout.width || height !== layout.height;
+    if(river && (resized || portaStart!==layout.portaStart || rioSpan!==layout.rioSpan ||
+      pocoSpan!==layout.pocoSpan || r.top+scroll!==layout.rioTop || p.top+scroll!==layout.pocoTop)) layoutTransition=true;
     dprCap = maxDpr(width);
     Object.assign(layout, {
-      width, height, rioTop: r.top + scroll, rioSpan: Math.max(1, r.height - height),
-      pocoTop: p.top + scroll, pocoSpan: Math.max(1, p.height - height), pocoBottom: p.bottom + scroll,
-      portaStart: Math.min(0.98, Math.max(0.01, (doorTop - r.top) / Math.max(1, r.height - height))),
+      width, height, rioTop: r.top + scroll, rioSpan,
+      pocoTop: p.top + scroll, pocoSpan, pocoBottom: p.bottom + scroll, portaStart,
     });
     if (renderer && !failed) {
       if (quality.dpr > dprCap) {
@@ -140,11 +150,12 @@ export async function initStage({ onCovado } = {}) {
       if (resized) {
         renderer.setSize(width, height, false);
         river?.resize(width, height);
-        nilo?.resize(width, height);
         resetSampling();
       }
     }
-    snap = true;
+    // ResizeObserver e a barra móvel podem remedir durante a travessia.
+    // Mantém o progresso atual; só o carregamento inicial precisa alinhar de imediato.
+    if (!river) snap = true;
   }
 
   function invalidateLayout() { layoutDirty = true; requestFrame(); }
@@ -155,6 +166,10 @@ export async function initStage({ onCovado } = {}) {
     }
     if (failed) return null;
     scene.resize(layout.width, layout.height);
+    navigation.portaStart = frameState.portaStart = layout.portaStart;
+    navigation.viewRatio = frameState.viewRatio = layout.width / layout.height;
+    scene.update(frameState);
+    const uploadObjects = [];
     let light = false, caster = false;
     scene.scene.traverse((object) => {
       if (object.isLight && object.castShadow && object.shadow) {
@@ -163,6 +178,7 @@ export async function initStage({ onCovado } = {}) {
         object.shadow.needsUpdate = true;
       }
       if (object.isMesh && object.castShadow) caster = true;
+      if ((object.isMesh || object.isPoints) && object.frustumCulled) uploadObjects.push(object);
     });
     scene.hasShadows = quality.shadows && light && caster;
     scene.shadowsReady = false;
@@ -184,13 +200,15 @@ export async function initStage({ onCovado } = {}) {
     const previousTarget = renderer.getRenderTarget();
     const previousShadows = renderer.shadowMap.enabled;
     try {
-      scene.update({ p: 0, portaStart: layout.portaStart, time: 0, pointer: { x: 0, y: 0 }, reduced: true });
+      // Um único warmup envia também o interior, mesmo distante/oculto na chegada.
+      for (const object of uploadObjects) object.frustumCulled = false;
       renderer.setRenderTarget(warmup);
       renderer.shadowMap.enabled = scene.hasShadows;
       renderer.shadowMap.needsUpdate = scene.hasShadows;
       renderer.render(scene.scene, scene.camera);
       scene.shadowsReady = true;
     } finally {
+      for (const object of uploadObjects) object.frustumCulled = true;
       renderer.setRenderTarget(previousTarget);
       renderer.shadowMap.enabled = previousShadows;
       warmup.dispose();
@@ -201,39 +219,9 @@ export async function initStage({ onCovado } = {}) {
     return scene;
   }
 
-  function ensureNilo() {
-    if (niloPromise || failed || !river) return niloPromise;
-    cancelPrefetch();
-    niloLoading = true;
-    resetSampling();
-    niloPromise = (async () => {
-      const scene = await withTimeout((async () => {
-        const { createNilometer } = await import('./nilometer.js');
-        if (failed) return null;
-        return await createNilometer({ quality });
-      })(), 30000, 'Tempo esgotado ao carregar o nilômetro');
-      if (failed) return;
-      nilo = await prepare(scene);
-      snap = true;
-    })().catch(fail).finally(() => {
-      niloLoading = false;
-      resetSampling();
-      requestFrame();
-    });
-    return niloPromise;
-  }
-
-  function prefetchNilo() {
-    if (idle !== null || niloPromise || failed || !river || document.hidden) return;
-    const run = () => { idle = null; if (!document.hidden) ensureNilo(); };
-    idle = typeof window.requestIdleCallback === 'function'
-      ? window.requestIdleCallback(run, { timeout: 1800 })
-      : setTimeout(run, 250);
-  }
-
   function adaptDpr(now, interval) {
     // Loading, primeira utilização, resize e retomada não contam como GPU lenta.
-    if (riverLoading || niloLoading || now < adaptAfter || interval <= 0 || interval > 250) return;
+    if (riverLoading || now < adaptAfter || interval <= 0 || interval > 250) return;
     if (warmFrames > 0) { warmFrames--; return; }
     averageMs += (interval - averageMs) * 0.05;
     slowMs = averageMs > 24 ? slowMs + interval : 0;
@@ -253,16 +241,12 @@ export async function initStage({ onCovado } = {}) {
     if (document.hidden) { lastNow = 0; return; }
     try {
       if (layoutDirty) measureLayout();
-      const inPoco = scroll >= layout.pocoTop;
-      const name = inPoco ? 'poco' : 'rio';
-      if (name !== activeScene) { activeScene = name; snap = true; resetSampling(); }
-      if (inPoco !== posterPoco) { posterPoco = inPoco; root.classList.toggle('no-poco', inPoco); }
-      if (name !== bodyScene) { bodyScene = name; document.body.dataset.cena = name; }
-      if (!failed && river && layout.pocoTop - scroll < layout.height * 1.5) ensureNilo();
-      const scene = inPoco ? nilo : river;
-      if (failed || !scene) {
+      if (failed || !river) {
+        const inPoco = scroll >= layout.pocoTop;
+        if (inPoco !== posterPoco) { posterPoco = inPoco; root.classList.toggle('no-poco', inPoco); }
+        const name = inPoco ? 'poco' : 'rio';
+        if (name !== bodyScene) { bodyScene = name; document.body.dataset.cena = name; }
         showPoster(true);
-        setVeil(0);
         hideMeter();
         lastNow = 0;
         return;
@@ -274,9 +258,21 @@ export async function initStage({ onCovado } = {}) {
       const reduced = reducedMQ.matches;
       const targetRio = clamp01((scroll - layout.rioTop) / layout.rioSpan);
       const targetPoco = clamp01((scroll - layout.pocoTop) / layout.pocoSpan);
-      const k = reduced || snap ? 1 : 1 - Math.exp(-dt * (mobile ? 9 : 5.5));
-      pRio += (targetRio - pRio) * k;
-      pPoco += (targetPoco - pPoco) * k;
+      // Um só valor suavizado atravessa a fronteira. Não muda a câmera pelo scroll
+      // bruto enquanto a aproximação ainda está terminando, nem reseta a suavização.
+      const targetJourney = targetRio + targetPoco;
+      // Reduced motion mantém resposta direta ao scroll. Só resize interpola a
+      // mudança de layout/lente, sem ligar animações incidentais de água/aves.
+      const settled=advanceJourney(navigation,targetJourney,layout.portaStart,layout.width/layout.height,
+        dt,mobile?9:5.5,snap||(reduced&&!layoutTransition));
+      const journey=navigation.journey;
+      pRio = Math.min(journey, 1);
+      pPoco = Math.max(journey - 1, 0);
+      const inPoco = journey >= 1;
+      const name = inPoco ? 'poco' : 'rio';
+      if (name !== activeScene) { activeScene = name; resetSampling(); }
+      if (inPoco !== posterPoco) { posterPoco = inPoco; root.classList.toggle('no-poco', inPoco); }
+      if (name !== bodyScene) { bodyScene = name; document.body.dataset.cena = name; }
       snap = false;
       const pointerK = 1 - Math.exp(-dt * 5);
       pointer.x += (pointer.tx - pointer.x) * pointerK;
@@ -285,32 +281,33 @@ export async function initStage({ onCovado } = {}) {
       const moving = !reduced && scroll < layout.pocoBottom - layout.height;
       // Mudar o drawing buffer antes de desenhar evita um frame vazio na troca de DPR.
       if (moving) adaptDpr(now, frameMs);
-      const result = scene.update({ p: inPoco ? pPoco : pRio, portaStart: layout.portaStart, time: elapsed, pointer, reduced });
-      renderer.shadowMap.enabled = scene.hasShadows;
-      renderer.shadowMap.needsUpdate = scene.hasShadows && !scene.shadowsReady;
-      renderer.render(scene.scene, scene.camera);
+      frameState.p = pRio; frameState.pInterior = pPoco; frameState.inInterior = inPoco;
+      frameState.portaStart = navigation.portaStart; frameState.viewRatio = navigation.viewRatio;
+      frameState.time = elapsed; frameState.reduced = reduced;
+      const result = river.update(frameState);
+      renderer.shadowMap.enabled = river.hasShadows;
+      renderer.shadowMap.needsUpdate = river.hasShadows && !river.shadowsReady;
+      renderer.render(river.scene, river.camera);
       if (shaderError) throw new Error('Falha ao renderizar shaders');
-      scene.shadowsReady = true;
+      river.shadowsReady = true;
       showPoster(false);
       if (inPoco) {
-        setVeil(1 - smooth(0, 0.05, pPoco));
         onCovado?.(result, pPoco);
         meterActive = true;
       } else {
-        setVeil(smooth(0.55, 0.98, clamp01((pRio - layout.portaStart) / (1 - layout.portaStart))));
         hideMeter();
       }
       // No fim da jornada, só redesenha em resposta a entrada ou resize.
-      const settling = !reduced && (Math.abs(targetRio - pRio) > 0.0001 || Math.abs(targetPoco - pPoco) > 0.0001);
+      const settling = (!reduced || layoutTransition) && !settled;
+      if(settled)layoutTransition=false;
       if (moving || settling) requestFrame();
       else lastNow = 0;
     } catch (error) { fail(error); }
   }
 
   addEventListener('scroll', () => {
-    const next = window.scrollY;
-    if (Math.abs(next - scroll) > layout.height) snap = true;
-    scroll = next;
+    // Mesmo um gesto grande atravessa a fronteira pelo progresso suavizado único.
+    scroll = window.scrollY;
     requestFrame();
   }, { passive: true });
   addEventListener('resize', invalidateLayout, { passive: true });
@@ -336,8 +333,7 @@ export async function initStage({ onCovado } = {}) {
     raf = 0;
     lastNow = 0;
     resetSampling();
-    if (document.hidden) cancelPrefetch();
-    else { jump(); prefetchNilo(); }
+    if (!document.hidden) jump();
   });
   if (!mobile) {
     addEventListener('pointermove', (event) => {
@@ -376,15 +372,15 @@ export async function initStage({ onCovado } = {}) {
     measureLayout();
     // Os materiais vêm do Blender: não dependem mais de fontes/Canvas 2D.
     if (failed) return null;
-    const scene = await withTimeout(createRiver({ quality }), 30000, 'Tempo esgotado ao carregar o rio');
+    const scene = await withTimeout(createRiver({ quality }), 30000, 'Tempo esgotado ao carregar rio, nilômetro e guardas');
     if (failed) return null;
     river = await prepare(scene);
+    nilo = river?.nilometer ?? null;
     riverLoading = false;
     if (failed) return null;
     snap = true;
     resetSampling();
     requestFrame();
-    prefetchNilo();
     return { renderer };
   } catch (error) {
     fail(error);

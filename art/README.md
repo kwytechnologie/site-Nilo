@@ -1,5 +1,7 @@
 # Nilo no Blender
 
+**Revisão atual:** abra `nilo-revisao.blend`. O roteiro, as cenas, os novos geradores e os limites históricos estão em [REVISAO-NILO-2026-10-16.md](../docs/REVISAO-NILO-2026-10-16.md). O `nilo.blend` anterior foi preservado. As instruções abaixo descrevem a versão anterior.
+
 Abra `nilo.blend` no Blender 5.2 ou mais recente. O arquivo inclui as texturas.
 
 - **Nilo • atelier**: poço, escadas, coluna octogonal, divisões em côvados, nichos, capitel, pavilhão e iluminação de revisão. Numpad 0 alterna a vista da câmera; botão do meio orbita.

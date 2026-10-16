@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createWaterMaterial } from './water.js';
 import { rng } from './textures.js';
 import { loadModel } from './assets.js';
+import { createNilometer, NILO_DIM, NILO_ENTRY, sceneFov } from './nilometer.js';
 
 /*
   O rio. Descemos o Nilo rumo ao norte, ao fim da tarde, até a ponta sul da ilha de Roda,
@@ -27,6 +28,93 @@ const COLORS = {
 };
 
 export const DOOR = new THREE.Vector3(8, 1.7, -583);
+const BUILDING_ORIGIN = new THREE.Vector3(DOOR.x, 1.0, DOOR.z - NILO_DIM.roomHalf);
+const ENTRY_POSITION = NILO_ENTRY.position.clone().add(BUILDING_ORIGIN);
+const ENTRY_LOOK = NILO_ENTRY.look.clone().add(BUILDING_ORIGIN);
+const TRAVEL_END = new THREE.Vector3(4, 3.2, -520);
+const BRAKE_START = .94;
+
+// Hermite no trecho final (~29 m): casa valor/tangente com o rio e chega parado.
+export function riverTravel(progress) {
+  const x=THREE.MathUtils.clamp(progress,0,1);
+  const base=THREE.MathUtils.smoothstep(x,0,1)*.15+x*.85;
+  if(x<=BRAKE_START)return base;
+  const a=BRAKE_START, span=1-a, u=(x-a)/span;
+  const start=THREE.MathUtils.smoothstep(a,0,1)*.15+a*.85;
+  const tangent=.85+.9*a*(1-a);
+  return start+(1-start)*u*u*(3-2*u)+span*tangent*u*(u-1)*(u-1);
+}
+
+// Matemática de câmera separada dos assets para QA numérico com THREE, sem GLB.
+// Os vetores de saída são reutilizados pelo chamador; não há alocações por frame.
+export function updateRiverCamera(camera, look, state) {
+  const {p,portaStart,time,pointer,reduced,viewRatio=camera.aspect}=state;
+  const rawTravel=THREE.MathUtils.clamp(p/portaStart,0,1);
+  const travel=riverTravel(rawTravel);
+  const approach=THREE.MathUtils.clamp((p-portaStart)/(1-portaStart),0,1);
+  const t=reduced?0:time;
+  const sway=Math.sin(travel*9)*7+Math.sin(travel*3.1)*5;
+  const bob=Math.sin(t*.9)*.035*(1-THREE.MathUtils.smootherstep(rawTravel,BRAKE_START,1));
+  camera.position.set(THREE.MathUtils.lerp(8+sway*.6,TRAVEL_END.x,Math.pow(travel,4)),
+    3.2+bob,THREE.MathUtils.lerp(34,TRAVEL_END.z,travel));
+  const yaw=THREE.MathUtils.lerp(.32,0,Math.min(travel*2.2,1))+Math.cos(travel*9)*.05;
+  look.set(camera.position.x-Math.sin(yaw)*50,4.2,camera.position.z-Math.cos(yaw)*50);
+  const e=THREE.MathUtils.smootherstep(approach,0,1);
+  camera.position.lerp(ENTRY_POSITION,e);look.lerp(ENTRY_LOOK,e);
+  const fov=THREE.MathUtils.lerp(sceneFov(viewRatio),sceneFov(viewRatio,true),e);
+  if(camera.fov!==fov){camera.fov=fov;camera.updateProjectionMatrix();}
+  camera.lookAt(look);
+  if(!reduced){camera.rotation.y-=pointer.x*.035*(1-e);camera.rotation.x+=pointer.y*.02*(1-e);}
+  return approach;
+}
+
+// Recorte geométrico permanente: água/ilha nunca tampam o poço, nem vistos pela porta.
+// Executado só no carregamento; mantém a altura e as cores dos triângulos da ilha.
+function cutBuildingFootprint(geometry, offsetX = 0, offsetZ = 0) {
+  const half=NILO_DIM.roomHalf;
+  const planes=[[0,BUILDING_ORIGIN.x-half,1,offsetX],[0,BUILDING_ORIGIN.x+half,-1,offsetX],
+    [2,BUILDING_ORIGIN.z-half,1,offsetZ],[2,BUILDING_ORIGIN.z+half,-1,offsetZ]];
+  const positions=geometry.getAttribute('position'), colors=geometry.getAttribute('color');
+  const indices=geometry.getIndex(), output=[], outputColors=[];
+  function emit(poly) {
+    for(let i=1;i<poly.length-1;i++)for(const vertex of [poly[0],poly[i],poly[i+1]]) {
+      output.push(vertex[0],vertex[1],vertex[2]);
+      if(colors)outputColors.push(vertex[3],vertex[4],vertex[5]);
+    }
+  }
+  const count=indices?indices.count:positions.count;
+  for(let i=0;i<count;i+=3) {
+    let inside=[];
+    for(let j=0;j<3;j++) {
+      const index=indices?indices.getX(i+j):i+j;
+      const vertex=[positions.getX(index),positions.getY(index),positions.getZ(index)];
+      if(colors)vertex.push(colors.getX(index),colors.getY(index),colors.getZ(index));
+      inside.push(vertex);
+    }
+    // Emite a porção fora de cada semiplano; só a interseção dos quatro é removida.
+    for(const [axis,bound,sign,offset] of planes) {
+      if(!inside.length)break;
+      const next=[],outside=[];
+      let prev=inside[inside.length-1], prevD=(prev[axis]+offset-bound)*sign;
+      for(const vertex of inside) {
+        const d=(vertex[axis]+offset-bound)*sign;
+        if((d>=0)!==(prevD>=0)) {
+          const t=prevD/(prevD-d);
+          const edge=prev.map((v,k)=>THREE.MathUtils.lerp(v,vertex[k],t));
+          next.push(edge);outside.push(edge);
+        }
+        (d>=0?next:outside).push(vertex);
+        prev=vertex;prevD=d;
+      }
+      emit(outside);inside=next;
+    }
+  }
+  const cut=new THREE.BufferGeometry();
+  cut.setAttribute('position',new THREE.Float32BufferAttribute(output,3));
+  if(colors)cut.setAttribute('color',new THREE.Float32BufferAttribute(outputColors,3));
+  cut.computeVertexNormals();cut.computeBoundingSphere();geometry.dispose();
+  return cut;
+}
 
 function felucca() {
   const group = new THREE.Group();
@@ -162,17 +250,21 @@ function skyMaterial() {
 }
 
 export async function createRiver({ quality }) {
-  const [vegetation, pavilion] = await Promise.all([loadModel('vegetation'), loadModel('pavilion')]);
+  const [vegetation, nilometer] = await Promise.all([loadModel('vegetation'), createNilometer({quality})]);
   const rand = rng(1861);
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(COLORS.fog, 70, 1300);
-  const camera = new THREE.PerspectiveCamera(52, 1, 0.3, 6000);
+  const camera = new THREE.PerspectiveCamera(52, 1, 0.05, 6000);
+  nilometer.scene.position.copy(BUILDING_ORIGIN);
+  scene.add(nilometer.scene);
+  nilometer.scene.updateMatrixWorld(true);
 
   const sky = new THREE.Mesh(new THREE.SphereGeometry(4000, 32, 16), skyMaterial());
   sky.frustumCulled = false;
   scene.add(sky);
 
-  scene.add(new THREE.HemisphereLight('#c8e1ef', '#4f5134', 1.55));
+  const ambient = new THREE.HemisphereLight('#c8e1ef', '#4f5134', 1.55);
+  scene.add(ambient);
   const sun = new THREE.DirectionalLight('#ffe0ac', 2.4);
   sun.position.copy(SUN_DIR).multiplyScalar(500);
   scene.add(sun);
@@ -182,9 +274,10 @@ export async function createRiver({ quality }) {
     sunDir: SUN_DIR, deep: '#173e3b', shallow: '#527266', skyTop: COLORS.mid, skyHorizon: COLORS.horizon,
     sunColor: COLORS.sun, fogColor: COLORS.fog, fogNear: 70, fogFar: 1300, scale: 1.0, river: true,
   });
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000, 1, 1), waterMat);
-  water.rotation.x = -Math.PI / 2;
-  water.position.z = -800;
+  const waterGeometry=new THREE.PlaneGeometry(6000,6000,1,1);
+  waterGeometry.rotateX(-Math.PI/2);waterGeometry.translate(0,0,-800);
+  const water = new THREE.Mesh(cutBuildingFootprint(waterGeometry), waterMat);
+  water.name='RiverWater';
   scene.add(water);
 
   // Margens: oeste (esquerda) e leste (direita). A ilha de Roda divide o rio no fim.
@@ -323,7 +416,7 @@ export async function createRiver({ quality }) {
     boats.push(b);
   }
 
-  // Ilha de Roda e o pavilhão do nilômetro na ponta sul.
+  // Ilha de Roda, recortada sob o edifício completo do nilômetro.
   const islandGeometry = new THREE.BufferGeometry(), islandVertices=[], islandColors=[], islandIndices=[];
   const islandTones=['#72704c','#78704b','#666442','#3d4d37'].map(c=>new THREE.Color(c));
   for(let ring=0;ring<4;ring++) for(let i=0;i<64;i++) {
@@ -336,20 +429,19 @@ export async function createRiver({ quality }) {
   islandGeometry.setAttribute('position',new THREE.Float32BufferAttribute(islandVertices,3));
   islandGeometry.setAttribute('color',new THREE.Float32BufferAttribute(islandColors,3));
   islandGeometry.setIndex(islandIndices);islandGeometry.computeVertexNormals();
-  const island = new THREE.Mesh(islandGeometry,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}));
+  const island = new THREE.Mesh(cutBuildingFootprint(islandGeometry,DOOR.x,DOOR.z-120),new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}));
+  island.name='RodaIsland';
   island.position.set(DOOR.x, 0, DOOR.z - 120);
   scene.add(island);
-  const kiosk = pavilion;
-  kiosk.scale.setScalar(1.35);
-  kiosk.position.set(DOOR.x, 0.6, DOOR.z - 5 * 1.35);
   // luz quente na porta, para o olhar achar o nilômetro
   const doorLight = new THREE.PointLight('#ffc98a', 55, 30, 1.6);
   doorLight.position.set(DOOR.x, 3, DOOR.z + 4);
   scene.add(doorLight);
-  scene.add(kiosk);
   // cais de pedra na frente da porta
   const quay = new THREE.Mesh(new THREE.BoxGeometry(14, 0.8, 8), new THREE.MeshLambertMaterial({ color: '#b48e62' }));
-  quay.position.set(DOOR.x, 0.6, DOOR.z + 3);
+  // A face traseira termina fora da fachada: nenhum volume invade a galeria/poço.
+  quay.position.set(DOOR.x, 0.6, DOOR.z + 4.01);
+  quay.name='EntranceQuay';
   scene.add(quay);
   const islandReeds=new THREE.InstancedMesh(papyrusGeo,vegMat,quality.mobile?35:70);
   for(let i=0;i<islandReeds.count;i++) {
@@ -386,66 +478,74 @@ export async function createRiver({ quality }) {
   }
 
   // Caminho da câmera.
-  const travelEnd = new THREE.Vector3(4, 3.2, -520);
   const look = new THREE.Vector3();
-  const tmp = new THREE.Vector3();
+  const eyeWorld=new THREE.Vector3();
+  const exteriorFog=new THREE.Color(COLORS.fog), interiorFog=new THREE.Color('#182b2c');
+  const interiorState={p:0,time:0,pointer:null,reduced:true,viewRatio:1};
+  let renderCamera=camera;
+  // Lista única: exterior opaco/transparente, nunca céu, luzes, câmeras ou nilômetro.
+  const exteriorObjects=scene.children.filter(o=>o!==nilometer.scene&&o!==sky&&!o.isLight&&!o.isCamera&&o.visible);
+  let exteriorVisible=true;
 
-  function update({ p, portaStart, time, pointer, reduced }) {
+  function update(state) {
+    const {time,pointer,reduced,pInterior=0,inInterior=false,viewRatio=camera.aspect}=state;
     const t = reduced ? 0 : time;
     waterMat.uniforms.uTime.value = t * 0.55;
     sky.material.uniforms.uTime.value = t;
     wind.value = t;
-    sky.position.copy(camera.position);
 
-    let travel = Math.min(p / portaStart, 1);
-    const approach = THREE.MathUtils.clamp((p - portaStart) / (1 - portaStart), 0, 1);
-    travel = THREE.MathUtils.smoothstep(travel, 0, 1) * 0.15 + travel * 0.85;
+    const approach=updateRiverCamera(camera,look,state);
 
-    const z = THREE.MathUtils.lerp(34, travelEnd.z, travel);
-    const sway = Math.sin(travel * 9.0) * 7 + Math.sin(travel * 3.1) * 5;
-    const bob = Math.sin(t * 0.9) * 0.035;
-    camera.position.set(THREE.MathUtils.lerp(8 + sway * 0.6, travelEnd.x, Math.pow(travel, 4)), 3.2 + bob, z);
-    // olhar: rio adiante, puxando um pouco para o pôr do sol no começo
-    const yaw = THREE.MathUtils.lerp(0.32, 0.0, Math.min(travel * 2.2, 1)) + Math.cos(travel * 9.0) * 0.05;
-    look.set(camera.position.x - Math.sin(yaw) * 50, 4.2, camera.position.z - Math.cos(yaw) * 50);
-
-    if (approach > 0) {
-      // Aproximação da porta do nilômetro: a câmera desliza até atravessar o arco.
-      const e = THREE.MathUtils.smootherstep(approach, 0, 1);
-      tmp.copy(camera.position).lerp(new THREE.Vector3(DOOR.x, 2.1, DOOR.z + 0.5), e);
-      camera.position.copy(tmp);
-      camera.position.y += bob * (1 - e);
-      const doorLook = new THREE.Vector3(DOOR.x, 2.2, DOOR.z - 20);
-      look.lerp(doorLook, Math.min(1, e * 1.6));
+    nilometer.setEntrance(approach);
+    interiorState.p=pInterior;interiorState.time=time;
+    interiorState.pointer=pointer;interiorState.reduced=reduced;
+    interiorState.viewRatio=viewRatio;
+    const result=nilometer.update(interiorState);
+    renderCamera=inInterior?nilometer.camera:camera;
+    renderCamera.getWorldPosition(eyeWorld);
+    sky.position.copy(eyeWorld);
+    // Mesmos tipos/quantidades de luz e fog, sem novas variantes de shader na entrada.
+    const interiorBlend=THREE.MathUtils.smootherstep(approach,.75,1);
+    ambient.intensity=THREE.MathUtils.lerp(1.55,.10,interiorBlend);
+    sun.intensity=THREE.MathUtils.lerp(2.4,.08,interiorBlend);
+    nilometer.setInteriorLight(interiorBlend);
+    scene.fog.color.copy(exteriorFog).lerp(interiorFog,interiorBlend);
+    scene.fog.near=THREE.MathUtils.lerp(70,12,interiorBlend);
+    scene.fog.far=THREE.MathUtils.lerp(1300,70,interiorBlend);
+    waterMat.uniforms.uFogColor.value.copy(scene.fog.color);
+    waterMat.uniforms.uFogNear.value=scene.fog.near;
+    waterMat.uniforms.uFogFar.value=scene.fog.far;
+    // Os recortes já liberam a vista pela porta. Só desliga o exterior sob o piso
+    // depois da travessia; scroll reverso restaura tudo de forma determinística.
+    const showExterior=!(inInterior&&pInterior>.54);
+    if(showExterior!==exteriorVisible) {
+      exteriorVisible=showExterior;
+      for(const object of exteriorObjects)object.visible=showExterior;
     }
+    water.visible=!inInterior;island.visible=!inInterior;
 
-    camera.lookAt(look);
-    if (!reduced) {
-      camera.rotation.y += -pointer.x * 0.035;
-      camera.rotation.x += pointer.y * 0.02;
-    }
-
-    for (const b of boats) {
+    if(exteriorVisible)for (const b of boats) {
       const u = b.userData;
       b.position.z = u.z + Math.sin(t * .025 + u.phase) * 5;
       b.position.y = Math.sin(t * 1.1 + u.phase) * 0.08;
       b.rotation.z = Math.sin(t * 0.8 + u.phase) * 0.025;
     }
-    for (const g of birds) {
+    if(exteriorVisible)for (const g of birds) {
       const u = g.userData;
       const k = ((t * 6 + u.phase * 30) % 260) - 130;
-      g.position.set(camera.position.x + k + u.ox, u.oy + Math.sin(t + u.phase) * 1.5, camera.position.z + u.oz);
-      g.lookAt(camera.position);
+      g.position.set(eyeWorld.x + k + u.ox, u.oy + Math.sin(t + u.phase) * 1.5, eyeWorld.z + u.oz);
+      g.lookAt(eyeWorld);
       const flap = Math.sin(t * 6 + u.phase) * 0.5;
       u.l.rotation.z = flap; u.r.rotation.z = -flap;
     }
+    return result;
   }
 
   function resize(w, h) {
     camera.aspect = w / h;
-    camera.fov = w / h < 0.8 ? 66 : 52;
     camera.updateProjectionMatrix();
+    nilometer.resize(w,h);
   }
 
-  return { scene, camera, update, resize };
+  return { scene, get camera(){return renderCamera;}, update, resize, nilometer };
 }

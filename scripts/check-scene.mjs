@@ -62,15 +62,21 @@ try {
   await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/site-Nilo/?debug3d`});
   await sleep(mobile?10000:6500);
   const samples=[];
-  const route=[['rio','#rio',0],['rio-meio','#rio',.5],['porta','#rio',.93],['poco-entrada','#nilometro',.08],['poco-meio','#nilometro',.45],['poco-fundo','#nilometro',.86]];
+  const route=process.env.NILO_QA_PORTAL
+    ? [['guardas','portal',.65],['porta-abrindo','portal',.81],['travessia','portal',.94],['limiar','#nilometro',0],['cupula','#nilometro',.16],['coluna','#nilometro',.30],['escada','#nilometro',.68],['poco-fundo','#nilometro',.94]]
+    : [['rio','#rio',0],['rio-meio','#rio',.5],['porta','portal',.81],['poco-entrada','#nilometro',.16],['poco-meio','#nilometro',.68],['poco-fundo','#nilometro',.94]];
   const selected=process.env.NILO_QA_SCENE ? route.filter(r=>r[0]===process.env.NILO_QA_SCENE) : process.env.NILO_QA_QUICK ? route.slice(0,1) : route;
   for(const [name,id,p] of selected) {
-    await evaluate(`(()=>{const e=document.querySelector('${id}');scrollTo({top:e.offsetTop+(e.offsetHeight-innerHeight)*${p},behavior:'instant'});})()`);
+    await evaluate(id==='portal'
+      ? `(()=>{const d=document.querySelector('[data-porta]'),n=document.querySelector('#nilometro');const top=d.getBoundingClientRect().top+scrollY;scrollTo({top:top+(n.offsetTop-top)*${p},behavior:'instant'});})()`
+      : `(()=>{const e=document.querySelector('${id}');scrollTo({top:e.offsetTop+(e.offsetHeight-innerHeight)*${p},behavior:'instant'});})()`);
     await sleep(2200);
     await evaluate('__qa.frames=[]'); await sleep(1600);
     const sample=await evaluate(`(()=>{const f=__qa.frames;const v=f.map(x=>x.ms).sort((a,b)=>a-b);const active=f.filter(x=>x.draws);const c=document.querySelector('#stage');const gl=c.getContext('webgl2');const ext=gl?.getExtension('WEBGL_debug_renderer_info');return {scene:document.body.dataset.cena,fallback:document.documentElement.className,medianMs:v[Math.floor(v.length*.5)],p95Ms:v[Math.floor(v.length*.95)],maxMs:Math.max(...v),drawCalls:Math.round(active.reduce((s,f)=>s+f.draws,0)/Math.max(1,active.length)),triangles:Math.round(active.reduce((s,f)=>s+f.triangles,0)/Math.max(1,active.length)),debug:window.__niloDebug?JSON.parse(JSON.stringify(window.__niloDebug)):null,gpu:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):null,overflow:document.documentElement.scrollWidth>innerWidth};})()`);
+    if(process.env.NILO_QA_CLEAN)await evaluate(`window.__cleanStyle=document.createElement('style');__cleanStyle.textContent='body > :not(.stage){visibility:hidden!important}';document.head.append(__cleanStyle)`);
     const shot=await send('Page.captureScreenshot',{format:'png'});
     await writeFile(join(output,`${name}.png`),Buffer.from(shot.data,'base64'));
+    if(process.env.NILO_QA_CLEAN)await evaluate('__cleanStyle.remove()');
     if (process.env.NILO_QA_POSTERS && ['rio','poco-meio'].includes(name)) {
       await evaluate(`window.__posterStyle=document.createElement('style');__posterStyle.textContent='body > :not(.stage){visibility:hidden!important}.stage__veil{opacity:0!important}';document.head.append(__posterStyle)`);
       const poster=await send('Page.captureScreenshot',{format:'jpeg',quality:87});
@@ -85,6 +91,15 @@ try {
   if(process.env.NILO_QA_CHECKS) {
     const base=`http://127.0.0.1:${server.address().port}/site-Nilo/`;
     await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+    const seam=[];
+    for(const delta of [-2,0,2,0,-2]){
+      await evaluate(`scrollTo({top:document.querySelector('#nilometro').offsetTop+${delta},behavior:'instant'})`);await sleep(120);
+      seam.push(await evaluate(`({p:__niloDebug.cameraWorldPosition,q:__niloDebug.cameraWorldQuaternion,fov:__niloDebug.cameraFov,veil:getComputedStyle(document.querySelector('.stage__veil')).opacity})`));
+    }
+    const differences=seam.slice(1).map((v,i)=>({distance:Math.hypot(...v.p.map((x,k)=>x-seam[i].p[k])),dot:Math.abs(v.q.reduce((s,x,k)=>s+x*seam[i].q[k],0)),fov:Math.abs(v.fov-seam[i].fov)}));
+    checks.push({name:'portal continuous forward and reverse, no black veil',pass:differences.every(v=>v.distance<.03&&v.dot>.999&&v.fov<.02)&&seam.every(v=>Number(v.veil)===0),differences});
+    await evaluate(`(()=>{const d=document.querySelector('[data-porta]'),n=document.querySelector('#nilometro');const t=d.getBoundingClientRect().top+scrollY;scrollTo({top:t+(n.offsetTop-t)*.95,behavior:'instant'})})()`);await sleep(150);
+    checks.push({name:'doors and spears fully clear the entrance',pass:await evaluate(`(()=>{const a=__niloDebug.doorAngles;return Math.abs(a.doorLeft+1.4)<.001&&Math.abs(a.doorRight-1.4)<.001&&Math.abs(a.spearLeft-.70)<.001&&Math.abs(a.spearRight+.70)<.001})()`)});
     await evaluate('scrollTo(0,0)');await sleep(300);await evaluate('__qa.frames=[]');await sleep(350);
     checks.push({name:'reduced-motion: no idle draws',pass:await evaluate('__qa.frames.reduce((n,f)=>n+f.draws,0)===0')});
     if(mobile) {
