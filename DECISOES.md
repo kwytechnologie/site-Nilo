@@ -43,9 +43,11 @@ depois marca, depois produto e texto.
 
 ## Texto e conteúdo
 
-13. Números do produto no site: 3 pilhas AA, 9 meses a 1 ano, Wi-Fi 2,4 GHz, 15 minutos no modo
-    automático. Confirmar que continuam valendo na versão de venda.
-14. A conversa do WhatsApp no site é ilustrativa (nome "Ana", galão da "Cozinha"). Quer usar as
+13. Números do produto no site, atualizados em 22/10/2026: medidor inteligente (não mais
+    "balança"), só para galão de 20 litros, 4 pilhas AA com duração aproximada de 1 ano, Wi-Fi
+    2,4 GHz do local, 15 minutos no modo automático. Comunicação com foco em empresas, casa como
+    público secundário.
+14. A conversa do WhatsApp no site é ilustrativa (nome "Ana", galão da "Recepção"). Quer usar as
     mensagens reais aprovadas na Meta?
 15. Nenhuma imagem gerada por IA foi usada: o Higgsfield está com saldo zero. Tudo do site é
     desenhado em código. Se quiser fotos do produto, falta sessão de foto do protótipo.
