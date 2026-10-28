@@ -91,3 +91,36 @@ O nome vem do **nilômetro**, em especial o da ilha de Roda, no Cairo (861).
 2. Com a logo escolhida: trocar no `index.html`, refazer `og-nilo.jpg` e ícone da aba.
 3. Paredes do pavilhão: a textura lê mais como tábua do que como pedra; vale um passe.
 4. Copiar `docs/nota-obsidian.md` para `Documents/KWY TECH/02 - Projetos/Balança H2O/`.
+
+## Estado em 28/10/2026 (sessão na nuvem) e próximo passo
+
+**Ler isto primeiro numa conversa nova.** Site publicado em
+https://kwytechnologie.github.io/site-Nilo/ (cada push na `main` publica sozinho).
+
+Feito desde 22/10:
+- Textos: "medidor inteligente" (nunca "balança"), galão de 20 litros, 4 pilhas AA com duração
+  aproximada de 1 ano, sem "sem fio", Wi-Fi "do local", "monitora" no lugar de "pesa", conversa do
+  WhatsApp com a "Recepção", comunicação com foco em empresas (casa como público secundário),
+  pergunta nova "Funciona com qualquer galão?".
+- Ficha técnica: tirada a linha "Galão: De 20 litros", porque o galão não vem dentro do Nilo.
+
+Ordem combinada com o Rafael: textos, depois funcionalidades e destino dos botões, depois design.
+
+**Em andamento: Política de Privacidade e Termos de Uso do Nilo.**
+1. Ler a nota do Obsidian "Termos de Uso e Privacidade (Balança H2O)" (rascunho do Rafael) e
+   conferir contra o sistema real: repositórios privados `KWY-H2O` (cadastro na AWS,
+   `aws_cadastro/src/cadastro_legacy.py`, função `excluir_cliente`) e `KWY-WhatsApp` (painel de
+   atendimento, n8n, backups). O levantamento detalhado foi entregue ao Rafael em arquivo
+   (`levantamento-privacidade.md`), fora deste repositório, que é público.
+2. Pontos que o rascunho precisa cobrir: transferência internacional (AWS fora do Brasil), o que a
+   exclusão pelo WhatsApp apaga e o que mantém (pagamentos Pix ficam), conversas e anexos do painel,
+   registros do n8n, backups, Meta e demais operadores, e que não há IA tratando dado de cliente.
+3. Perguntas abertas ao Rafael: prazo de guarda do Pix (sugerido 5 anos), prazo das conversas do
+   painel, provedor e país da VPS, o que a distribuidora recebe no pedido, medidor vendido ou em
+   comodato, uso de dados para estatística, e-mail do encarregado (lgpd@kwytech.com?).
+4. Montar `/politica-de-privacidade` e `/termos` no modelo do site da KWY (repositório `KWY-SGP`,
+   `frontend/src/pages/PrivacyPolicyPage.jsx`, `src/seo/routeMeta.js`, `scripts/prerender.mjs`):
+   página própria com título, descrição e canonical, índice lateral, data de atualização,
+   `sitemap.xml` e `robots.txt`; trocar o "em breve" do rodapé pelos links. Aproveitar para pôr
+   canonical e `og:image` com endereço completo na página principal.
+5. Nada de detalhe de infraestrutura interna (tabelas, caminhos, região exata) neste repositório.
