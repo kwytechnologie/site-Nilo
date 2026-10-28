@@ -126,8 +126,8 @@ Ordem combinada com o Rafael: textos, depois funcionalidades e destino dos botõ
 5. Nada de detalhe de infraestrutura interna (tabelas, caminhos, região exata) neste repositório.
 
 **Atualização no fim de 28/10/2026 (sessão local):** páginas `politica-de-privacidade/` e
-`termos/` escritas conforme o sistema funciona hoje, com as respostas do Rafael: só LGPD, com a
-transferência para a AWS nos EUA citada; 5 anos de guarda para tudo o que fica depois da
+`termos/` escritas conforme o sistema funciona hoje, com as respostas do Rafael: só LGPD; em 28/10 o Rafael pediu
+para listar só distribuidora e autoridades no compartilhamento e só o Brasil em onde os dados ficam; 5 anos de guarda para tudo o que fica depois da
 exclusão; VPS da Hostinger no Brasil; Pix pago à KWY e repassado à distribuidora; medidor
 vendido, com garantia de 1 ano e devolução em 30 dias; serviço sem cobrança à parte; dados só
 para controle interno, sem venda nem marketing; contatos lgpd@ e comercial@. Rodapé, FAQ,
