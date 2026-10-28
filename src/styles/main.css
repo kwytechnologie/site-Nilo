@@ -273,7 +273,6 @@ main { position: relative; z-index: 1; }
 .rodape__col { display: grid; align-content: start; gap: 8px; }
 .rodape__col a { text-decoration: none; }
 .rodape__col a:hover { color: var(--linho); text-decoration: underline; text-underline-offset: 3px; }
-.em-breve { color: var(--linho-50); }
 .rodape__nota { grid-column: 1 / -1; padding-top: 22px; border-top: 1px solid var(--linho-15); font-size: .8rem; color: var(--linho-50); }
 
 /* ── Reveals (o JS adiciona .is-dentro) ─────────────────────── */

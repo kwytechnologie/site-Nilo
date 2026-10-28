@@ -1,0 +1,28 @@
+/* Páginas legais (privacidade e termos): usam a base clara da prancha da marca (marca.css). */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.legal { display: grid; gap: clamp(28px, 5vw, 64px); padding-bottom: clamp(48px, 8vw, 96px); }
+@media (min-width: 900px) { .legal { grid-template-columns: 260px minmax(0, 46rem); } }
+
+.indice { align-self: start; font-size: .95rem; }
+@media (min-width: 900px) { .indice { position: sticky; top: 24px; } }
+.indice ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border-left: 2px solid var(--linha); }
+.indice a { display: block; padding: 5px 0 5px 14px; color: var(--tinta); text-decoration: none; }
+.indice a:hover { color: var(--kemet); text-decoration: underline; }
+
+.texto section { scroll-margin-top: 24px; padding-top: 8px; }
+.texto section + section { margin-top: 40px; }
+.texto h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); line-height: 1.05; margin-bottom: 14px; }
+.texto h3 { font-size: 1.2rem; margin: 22px 0 8px; }
+.texto p + p, .texto p + ul, .texto ul + p { margin-top: 12px; }
+.texto ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.texto a { color: #0B6170; font-weight: 600; }
+.destaque { padding: 14px 18px; border-radius: 12px; background: #fff8ec; border: 1px solid var(--linha); border-left: 4px solid var(--faianca); }
+.destaque + p, p + .destaque, ul + .destaque, .destaque + ul { margin-top: 12px; }
+
+.contato { margin-top: 48px; background: var(--kemet); color: #F2E9D8; border-radius: 22px; padding: 28px; display: grid; gap: 8px; }
+.contato h2 { color: #F2E9D8; margin-bottom: 6px; }
+.contato a { color: #7FD8CF; }
+.leia { display: inline-block; margin-top: 28px; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--faianca); color: var(--kemet); font-weight: 700; text-decoration: none; }
+.leia:hover { background: #fff8ec; }

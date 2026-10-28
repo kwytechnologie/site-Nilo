@@ -36,8 +36,8 @@ depois marca, depois produto e texto.
    de 10 L? O site diz só "debaixo do galão".
 10. **Distribuidoras parceiras**: o FAQ diz que o Nilo trabalha com parceiras perto do cliente e
     que a distribuidora do cliente "pode entrar". Confirmar se é assim que vai ser.
-11. **Termos de uso e privacidade** da balança ainda não estão publicados; o rodapé mostra "em
-    breve".
+11. **Termos de uso e privacidade**: escritos em 28/10/2026 (`termos/` e
+    `politica-de-privacidade/`), aguardando aprovação do Rafael e revisão jurídica.
 12. **Analytics e cookies**: a prévia não tem rastreamento nenhum. Se entrar Google Tag Manager,
     precisa do banner de consentimento igual ao do site da KWY.
 

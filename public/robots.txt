@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kwytechnologie.github.io/site-Nilo/sitemap.xml
