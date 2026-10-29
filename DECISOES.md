@@ -6,8 +6,8 @@ depois marca, depois produto e texto.
 ## Trava publicar
 
 1. **Publicação: resolvido em 07/10/2026.** O repositório ficou público, o Pages foi ligado com a
-   origem GitHub Actions e o site está no ar em https://kwytechnologie.github.io/site-Nilo/
-   (prancha da marca em `/site-Nilo/marca.html`). Cada `git push` na `main` publica sozinho.
+   origem GitHub Actions e o site está no ar em https://kwytechnologie.github.io/site-Nilo/.
+   Cada `git push` na `main` publica sozinho.
    As duas execuções com erro no Actions são de antes de o Pages ser ligado.
 2. **Para onde vai o botão "Quero o Nilo".** Hoje abre o WhatsApp comercial da KWY
    (+55 48 4042-0387) com a mensagem "Quero conhecer o Nilo". Alternativas: número próprio do
@@ -17,11 +17,9 @@ depois marca, depois produto e texto.
 
 ## Marca
 
-4. **Escolher a logo** entre as 6 opções (A Côvado, B Poço, C Mw, D Cartucho, E Coluna, F Lótus).
-   A prancha `marca.html` mostra todas em fundo claro e escuro, com ícones, cores, fontes, tom de
-   voz e regras culturais. Para ver: `npm run dev` e abrir `/marca.html`. O site usa a A por
-   enquanto. Escolhida a logo, trocar o arquivo no `index.html` (cabeçalho e rodapé), no ícone
-   da aba e refazer `public/img/og-nilo.jpg`.
+4. **Logo: resolvido em 29/10/2026.** Fica a A (Côvado) e o ícone A (gota). A prancha `marca.html`
+   saiu do site publicado; continua no repositório para consulta local (`npm run dev`, `/marca.html`).
+   Falta escolher a tipografia.
 5. **A letra Y da família KWY.** Na família de produtos, K é o pneu, W é o gás e Y é a água. O
    Nilo carrega o Y em algum lugar (embalagem, rodapé) ou vira marca independente?
 6. **"Nilo" sozinho ou "Nilo by KWY"** no material de venda.
