@@ -26,3 +26,14 @@ html { scroll-behavior: smooth; }
 .contato a { color: #7FD8CF; }
 .leia { display: inline-block; margin-top: 28px; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--faianca); color: var(--kemet); font-weight: 700; text-decoration: none; }
 .leia:hover { background: #fff8ec; }
+
+/* Rodapé igual ao do site (main.css), em fundo escuro sólido. */
+.rodape { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 36px; padding: 56px var(--gutter) 48px; background: var(--kemet); color: rgb(242 233 216 / 0.72); font-size: .94rem; }
+.rodape h3 { font: 700 .74rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #D9A441; margin-bottom: 12px; }
+.rodape b { color: #F2E9D8; }
+.rodape__marca img { height: 54px; width: auto; margin-bottom: 14px; }
+.rodape__col { display: grid; align-content: start; gap: 8px; }
+.rodape__col a { color: inherit; text-decoration: none; }
+.rodape__col a:hover { color: #F2E9D8; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 980px) { .rodape { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .rodape { grid-template-columns: 1fr; gap: 28px; } }
