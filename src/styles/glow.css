@@ -1,0 +1,9 @@
+/* ── Brilho que segue o mouse ([data-glow], ligado pelo src/ui/glow.js) ─ */
+@media (hover: hover) and (pointer: fine) {
+  [data-glow]::after {
+    content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+    background: radial-gradient(var(--glow-tam, 320px) circle at var(--mx, 50%) var(--my, 50%), var(--glow-cor, rgb(54 179 168 / 0.12)), transparent 70%);
+    opacity: 0; transition: opacity .35s ease;
+  }
+  [data-glow]:hover::after { opacity: 1; }
+}

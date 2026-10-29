@@ -29,6 +29,7 @@
   --raio-estela: 30px 30px 10px 10px; /* topo arredondado, como uma estela egípcia */
   --sombra: 0 30px 80px -30px rgb(0 0 0 / 0.65), 0 2px 0 0 rgb(242 233 216 / 0.06) inset;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -75,9 +76,14 @@ p { margin: 0; text-wrap: pretty; }
 }
 .nav.is-solida { background: rgb(11 31 42 / 0.72); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 1px 0 var(--linho-15); padding-block: 10px; }
 .nav__logo img { height: 40px; width: auto; }
-.nav__links { display: flex; gap: 26px; margin-left: auto; font-size: .95rem; }
-.nav__links a { text-decoration: none; color: var(--linho-70); transition: color .2s; }
+.nav__links { display: flex; gap: 4px; margin-left: auto; font-size: .95rem; }
+.nav__links a { position: relative; padding: 8px 12px; border-radius: 999px; text-decoration: none; color: var(--linho-70); transition: color .2s ease, background-color .2s ease; --glow-cor: rgb(217 164 65 / 0.28); --glow-tam: 90px; }
 .nav__links a:hover { color: var(--linho); }
+/* seção atual: um traço de ouro embaixo do link */
+.nav__links a::before { content: ''; position: absolute; left: 12px; right: 12px; bottom: 3px; height: 2px; border-radius: 2px; background: var(--ouro); transform: scaleX(0); transition: transform .25s var(--ease-out); }
+.nav__links a[aria-current] { color: var(--linho); }
+.nav__links a[aria-current]::before { transform: scaleX(1); }
+.menu-movel a[aria-current] { color: var(--ouro); }
 .nav__menu { display: none; margin-left: auto; width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; position: relative; }
 .nav__menu span:not(.sr-only) { position: absolute; left: 11px; right: 11px; height: 2px; background: var(--linho); transition: transform .3s var(--ease); }
 .nav__menu span:nth-of-type(2) { top: 18px; } .nav__menu span:nth-of-type(3) { top: 26px; }
@@ -93,14 +99,20 @@ p { margin: 0; text-wrap: pretty; }
   display: inline-flex; align-items: center; gap: 10px;
   min-height: 48px; padding: 0 24px; border-radius: 12px;
   font: 600 1rem/1 var(--texto); text-decoration: none; letter-spacing: .005em;
-  transition: transform .25s var(--ease), box-shadow .25s var(--ease), background .25s;
+  position: relative; isolation: isolate;
+  transition: transform .16s var(--ease-out), box-shadow .25s var(--ease-out), background-color .2s ease, border-color .2s ease;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
-.btn--cta { background: var(--cornalina); color: var(--noite); box-shadow: 0 10px 30px -10px rgb(232 101 43 / 0.7); }
-.btn--cta:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -10px rgb(232 101 43 / 0.85); background: #f07438; }
-.btn--cta:active { transform: translateY(0); }
-.btn--ghost { border: 1.5px solid var(--linho-50); color: var(--linho); }
-.btn--ghost:hover { border-color: var(--linho); background: rgb(242 233 216 / 0.06); }
+.btn:active { transform: scale(.97); }
+.btn--cta { background: var(--cornalina); color: var(--noite); box-shadow: 0 10px 30px -10px rgb(232 101 43 / 0.7); --glow-cor: rgb(255 238 214 / 0.45); --glow-tam: 120px; }
+.btn--ghost { border: 1.5px solid var(--linho-50); color: var(--linho); --glow-cor: rgb(242 233 216 / 0.16); --glow-tam: 140px; }
+@media (hover: hover) and (pointer: fine) {
+  .btn--cta:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -10px rgb(232 101 43 / 0.85); background: #f07438; }
+  .btn--ghost:hover { border-color: var(--linho); background: rgb(242 233 216 / 0.06); }
+  .btn:active { transform: scale(.97); }
+}
+
 .btn--sm { min-height: 40px; padding: 0 18px; font-size: .92rem; border-radius: 10px; }
 .btn--grande { min-height: 60px; padding: 0 36px; font-size: 1.15rem; border-radius: 14px; }
 
@@ -126,16 +138,19 @@ main { position: relative; z-index: 1; }
 .parada--hero { min-height: 100vh; min-height: 100svh; position: relative; align-items: flex-end; padding-bottom: clamp(72px, 12vh, 140px); }
 
 .parada--hero::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
+  content: ''; position: absolute; inset: 0 0 -24vh; pointer-events: none;
+  /* o esfumaçado passa do fim do topo e some aos poucos, sem a linha entre o escuro e o claro */
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 38vh), transparent);
+          mask-image: linear-gradient(180deg, #000 calc(100% - 38vh), transparent);
   background:
-    radial-gradient(120% 90% at 0% 100%, rgb(7 20 27 / 0.82) 0%, rgb(7 20 27 / 0.5) 38%, rgb(7 20 27 / 0) 70%),
+    radial-gradient(120% 90vh at 0% calc(100% - 24vh), rgb(7 20 27 / 0.82) 0%, rgb(7 20 27 / 0.5) 38%, rgb(7 20 27 / 0) 70%),
     linear-gradient(90deg, rgb(7 20 27 / 0.5) 0%, rgb(7 20 27 / 0.22) 45%, rgb(7 20 27 / 0) 70%);
 }
 .hero { max-width: 1240px; position: relative; }
 .hero .eyebrow { text-shadow: 0 1px 2px rgb(7 20 27 / 0.9), 0 0 18px rgb(7 20 27 / 0.85); }
 @media (max-width: 759px) {
   /* no celular o texto do topo cai sobre o céu claro: a sombra sobe mais */
-  .parada--hero::before { background: linear-gradient(0deg, rgb(7 20 27 / 0.88) 0%, rgb(7 20 27 / 0.7) 45%, rgb(7 20 27 / 0) 72%); }
+  .parada--hero::before { background: linear-gradient(0deg, rgb(7 20 27 / 0.88) 24vh, rgb(7 20 27 / 0.7) 69vh, rgb(7 20 27 / 0) 96vh); }
 }
 .hero__titulo { font-size: clamp(3rem, 7.6vw, 7.4rem); line-height: .88; font-weight: 900; letter-spacing: -0.02em; text-shadow: 0 2px 40px rgb(11 31 42 / 0.45); }
 .hero__titulo span { display: block; text-wrap: balance; }
@@ -160,7 +175,9 @@ main { position: relative; z-index: 1; }
   backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid var(--linho-15);
   box-shadow: var(--sombra);
+  isolation: isolate;
 }
+.placa--pedra { --glow-cor: rgb(217 164 65 / 0.1); }
 .placa::before {
   content: ''; position: absolute; left: 28px; right: 28px; top: 12px; height: 5px;
   border-top: 1.5px solid rgb(217 164 65 / 0.55); border-bottom: 1.5px solid rgb(217 164 65 / 0.3);
@@ -232,11 +249,15 @@ main { position: relative; z-index: 1; }
 .ficha dt { font: 700 .78rem/1.7 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ouro); }
 .ficha dd { margin: 0; color: var(--linho-70); }
 
-.faq details { border-bottom: 1px solid rgb(217 164 65 / 0.18); }
+.faq details { border-bottom: 1px solid rgb(217 164 65 / 0.18); interpolate-size: allow-keywords; }
+.faq details::details-content { block-size: 0; overflow: clip; transition: block-size .3s var(--ease-out), content-visibility .3s allow-discrete; }
+.faq details[open]::details-content { block-size: auto; }
 .faq summary { cursor: pointer; list-style: none; padding: 15px 34px 15px 0; position: relative; font-weight: 600; font-size: 1.02rem; }
 .faq summary::-webkit-details-marker { display: none; }
-.faq summary::after { content: ''; position: absolute; right: 6px; top: 50%; width: 10px; height: 10px; border-right: 2px solid var(--ouro); border-bottom: 2px solid var(--ouro); transform: translateY(-70%) rotate(45deg); transition: transform .3s var(--ease); }
-.faq details[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+.faq summary { transition: color .2s ease; }
+.faq summary:hover { color: var(--ouro); }
+.faq summary::after { content: '+'; position: absolute; right: 4px; top: 50%; font: 400 1.6rem/1 var(--mono); color: var(--ouro); transform: translateY(-50%); transition: transform .25s var(--ease-out); }
+.faq details[open] summary::after { transform: translateY(-50%) rotate(45deg); }
 .faq details p { padding: 0 0 16px; color: var(--linho-70); }
 
 .final { text-align: center; max-width: 760px; }
@@ -263,7 +284,7 @@ main { position: relative; z-index: 1; }
 
 /* ── Rodapé, no fundo do poço ───────────────────────────────── */
 .rodape {
-  position: relative; display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 36px;
+  position: relative; isolation: isolate; --glow-cor: rgb(217 164 65 / 0.08); --glow-tam: 520px; display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 36px;
   padding: 80px var(--gutter) 40px; margin-top: 10vh;
   background: linear-gradient(180deg, rgb(5 13 18 / 0) 0%, rgb(5 13 18 / 0.88) 22%, #050d12 60%);
   font-size: .94rem; color: var(--linho-70);

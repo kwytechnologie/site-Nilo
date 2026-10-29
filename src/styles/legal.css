@@ -9,7 +9,14 @@ html { scroll-behavior: smooth; }
 @media (min-width: 900px) { .indice { position: sticky; top: 24px; } }
 .indice ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border-left: 2px solid var(--linha); }
 .indice a { display: block; padding: 5px 0 5px 14px; color: var(--tinta); text-decoration: none; }
+.indice a { margin-left: -2px; border-left: 2px solid transparent; transition: color .2s ease, border-color .2s ease; }
 .indice a:hover { color: var(--kemet); text-decoration: underline; }
+.indice a[aria-current] { color: var(--kemet); font-weight: 700; border-left-color: var(--faianca); }
+.leia { transition: background-color .2s ease, transform .2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow .2s ease; }
+@media (hover: hover) and (pointer: fine) {
+  .leia:hover { background: #fff8ec; transform: translateY(-3px); box-shadow: 0 12px 24px -14px rgb(11 31 42 / 0.45); }
+}
+.leia:active { transform: scale(.97); }
 
 .texto section { scroll-margin-top: 24px; padding-top: 8px; }
 .texto section + section { margin-top: 40px; }
@@ -21,14 +28,13 @@ html { scroll-behavior: smooth; }
 .destaque { padding: 14px 18px; border-radius: 12px; background: #fff8ec; border: 1px solid var(--linha); border-left: 4px solid var(--faianca); }
 .destaque + p, p + .destaque, ul + .destaque, .destaque + ul { margin-top: 12px; }
 
-.contato { margin-top: 48px; background: var(--kemet); color: #F2E9D8; border-radius: 22px; padding: 28px; display: grid; gap: 8px; }
+.contato { position: relative; isolation: isolate; --glow-cor: rgb(54 179 168 / 0.16); --glow-tam: 420px; margin-top: 48px; background: var(--kemet); color: #F2E9D8; border-radius: 22px; padding: 28px; display: grid; gap: 8px; }
 .contato h2 { color: #F2E9D8; margin-bottom: 6px; }
 .contato a { color: #7FD8CF; }
-.leia { display: inline-block; margin-top: 28px; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--faianca); color: var(--kemet); font-weight: 700; text-decoration: none; }
-.leia:hover { background: #fff8ec; }
+.leia { position: relative; isolation: isolate; --glow-cor: rgb(54 179 168 / 0.22); --glow-tam: 160px; display: inline-block; margin-top: 28px; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--faianca); color: var(--kemet); font-weight: 700; text-decoration: none; }
 
 /* Rodapé igual ao do site (main.css), em fundo escuro sólido. */
-.rodape { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 36px; padding: 56px var(--gutter) 48px; background: var(--kemet); color: rgb(242 233 216 / 0.72); font-size: .94rem; }
+.rodape { position: relative; isolation: isolate; --glow-cor: rgb(217 164 65 / 0.08); --glow-tam: 520px; display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 36px; padding: 56px var(--gutter) 48px; background: var(--kemet); color: rgb(242 233 216 / 0.72); font-size: .94rem; }
 .rodape h3 { font: 700 .74rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #D9A441; margin-bottom: 12px; }
 .rodape b { color: #F2E9D8; }
 .rodape__marca img { height: 54px; width: auto; margin-bottom: 14px; }

@@ -1,4 +1,5 @@
 import Lenis from 'lenis';
+import { initGlow } from './glow.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const AR = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -82,6 +83,20 @@ export function initUI() {
   document.addEventListener('pointerdown', (e) => {
     if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
   });
+
+  initGlow('.placa, .btn, .nav__links a, .rodape');
+
+  // Menu marca a seção em que a pessoa está.
+  const navLinks = [...document.querySelectorAll('.nav__links a, .menu-movel a[href^="#"]')];
+  const secIO = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) {
+      for (const a of navLinks) {
+        if (a.getAttribute('href') === `#${e.target.id}`) a.setAttribute('aria-current', 'true');
+        else a.removeAttribute('aria-current');
+      }
+    }
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  document.querySelectorAll('.parada[id], .inscricao[id]').forEach((el) => secIO.observe(el));
 
   // Entradas: cada parada aparece quando chega à tela.
   const hero = document.querySelector('.hero');
