@@ -11,6 +11,7 @@ for (const path of [
   'index.html',
   'termos/index.html',
   'politica-de-privacidade/index.html',
+  'termos-revenda/index.html',
   'robots.txt',
   'sitemap.xml',
 ]) {

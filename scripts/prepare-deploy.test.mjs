@@ -7,7 +7,7 @@ import { test } from 'node:test';
 
 test('prepara todas as URLs e rejeita destinos inválidos antes de alterar arquivos', async () => {
   const root = await mkdtemp(join(tmpdir(), 'nilo-deploy-'));
-  const paths = ['index.html', 'termos/index.html', 'politica-de-privacidade/index.html', 'robots.txt', 'sitemap.xml'];
+  const paths = ['index.html', 'termos/index.html', 'politica-de-privacidade/index.html', 'termos-revenda/index.html', 'robots.txt', 'sitemap.xml'];
   const previousUrl = 'https://kwytechnologie.github.io/site-Nilo';
   try {
     await mkdir(join(root, 'scripts'));
