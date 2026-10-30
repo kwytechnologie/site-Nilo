@@ -110,7 +110,8 @@ def finish(model):
         for f in bm.faces:
             zs=[v.co.z for v in f.verts]
             if max(abs(z) for z in zs)<.000001:
-                if f.calc_area()<8:hidden.append(f)
+                # Small upward faces include the stair landing; only discard wall bottoms.
+                if f.calc_area()<8 and f.normal.z<0:hidden.append(f)
                 elif f.normal.z<0:f.normal_flip()
             elif max(abs(z+10.2) for z in zs)<.000001 and f.calc_area()<.30:hidden.append(f)
             elif max(abs(z+11.4) for z in zs)<.000001:
@@ -394,7 +395,9 @@ def build_inscriptions():
         th=side*pi/2
         for y,mat,width,height in [(-.72,UPPER,5.25,.64),(-2.42,LOWER,4.8,.6),(4.05,FRIEZE,8.4,.35)]:
             z=-2.918 if y<0 else -4.347
-            points=[(-width/2,y-height/2,z),(width/2,y-height/2,z),(width/2,y+height/2,z),(-width/2,y+height/2,z)]
+            # Meshopt rounds the old 2 mm frieze gap to zero; keep 10 mm before export.
+            front=z+.008 if mat==FRIEZE else z
+            points=[(-width/2,y-height/2,front),(width/2,y-height/2,front),(width/2,y+height/2,front),(-width/2,y+height/2,front)]
             points=[(x*cos(th)-zz*sin(th),yy,x*sin(th)+zz*cos(th)) for x,yy,zz in points]
             face(m,points,mat,[(0,0),(1,0),(1,1),(0,1)])
             cc=(0,y,z-.02);cc=(cc[0]*cos(th)-cc[2]*sin(th),cc[1],cc[0]*sin(th)+cc[2]*cos(th))

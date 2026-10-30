@@ -28,7 +28,8 @@ assert source.count(old)==1,'Skill changed: review the signed-volume adaptation.
 exec(source.replace(old,new),qa_check.__dict__)
 reports={}
 bpy.context.window.scene=bpy.data.scenes['Nilo • arquitetura v2']
-reports['architecture']=qa_check.run(objects=['NilometerV2','PaintedDome','CeilingSpandrels','DoorLeft','DoorRight','BrandInscriptions'],profile='game')
+# Frieze decals sit 10 mm above their supports to survive Meshopt quantization.
+reports['architecture']=qa_check.run(objects=['NilometerV2','PaintedDome','CeilingSpandrels','DoorLeft','DoorRight','BrandInscriptions'],profile='game',tol=.012)
 bpy.context.window.scene=bpy.data.scenes['Nilo • guardas']
 for side in ['Left','Right']:
     reports[side]=qa_check.run(objects=['NG861_Guard'+side+'_Body','NG861_Guard'+side+'_ArmSpear'],profile='game')

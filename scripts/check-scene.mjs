@@ -62,7 +62,9 @@ try {
   await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/site-Nilo/?debug3d`});
   await sleep(mobile?10000:6500);
   const samples=[];
-  const route=process.env.NILO_QA_PORTAL
+  const route=process.env.NILO_QA_DEFECTS
+    ? [['faixa-a','#nilometro',0],['faixa-b','#nilometro',.02],['patamar-a','#nilometro',.46],['patamar-b','#nilometro',.50],['inicio-escada','#nilometro',.54]]
+    : process.env.NILO_QA_PORTAL
     ? [['guardas','portal',.65],['porta-abrindo','portal',.81],['travessia','portal',.94],['limiar','#nilometro',0],['cupula','#nilometro',.16],['coluna','#nilometro',.30],['escada','#nilometro',.68],['poco-fundo','#nilometro',.94]]
     : [['rio','#rio',0],['rio-meio','#rio',.5],['porta','portal',.81],['poco-entrada','#nilometro',.16],['poco-meio','#nilometro',.68],['poco-fundo','#nilometro',.94]];
   const selected=process.env.NILO_QA_SCENE ? route.filter(r=>r[0]===process.env.NILO_QA_SCENE) : process.env.NILO_QA_QUICK ? route.slice(0,1) : route;

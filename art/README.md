@@ -2,6 +2,8 @@
 
 **Revisão atual:** abra `nilo-revisao.blend`. O roteiro, as cenas, os novos geradores e os limites históricos estão em [REVISAO-NILO-2026-10-16.md](../docs/REVISAO-NILO-2026-10-16.md). O `nilo.blend` anterior foi preservado. As instruções abaixo descrevem a versão anterior.
 
+Correção de 30/10/2026: patamar inicial restaurado e frisos separados 10 mm das bases; o Meshopt arredondava a folga anterior de 2 mm para zero. Iluminação, texturas e percurso preservados. `node scripts/check-nilometer.mjs` verifica o GLB já descomprimido (quatro frisos e nove pontos do patamar). `NILO_QA_DEFECTS=1` no verificador de navegador captura os ângulos de entrada e início da escada. No QA Blender, a tolerância de contato da arquitetura é 12 mm para aceitar esse afastamento intencional dos decalques; a verificação de sobreposição continua em 1 mm. Permanecem os avisos de UV repetida, junções e faces internas documentados na revisão anterior.
+
 Abra `nilo.blend` no Blender 5.2 ou mais recente. O arquivo inclui as texturas.
 
 - **Nilo • atelier**: poço, escadas, coluna octogonal, divisões em côvados, nichos, capitel, pavilhão e iluminação de revisão. Numpad 0 alterna a vista da câmera; botão do meio orbita.

@@ -5,7 +5,7 @@ const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 const pending = new Map();
 // Mudar junto do contrato/arquivos GLB: uma página já visitada pode ter modelos
 // antigos no cache HTTP mesmo após receber o JavaScript novo do GitHub Pages.
-const MODEL_REVISION = 'roda-20261016-v2';
+const MODEL_REVISION = 'roda-20261030-fixes';
 
 // Arquivos exportados do Blender com WebP + Meshopt, servidos pelo próprio site.
 export function loadModel(name) {
