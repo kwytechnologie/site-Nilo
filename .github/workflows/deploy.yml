@@ -1,40 +1,94 @@
-name: Publicar no GitHub Pages
+name: Validar e publicar no S3
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: s3-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
         with:
-          node-version: 22
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
           cache: npm
       - run: npm ci
+      - run: node --test scripts/prepare-deploy.test.mjs scripts/cloudfront.test.mjs
       - run: npm run build
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+        env:
+          NILO_BASE: /
+      - uses: actions/upload-artifact@v7
         with:
-          path: dist
+          name: site
+          path: dist/
+          if-no-files-found: error
+          retention-days: 3
   deploy:
     needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_S3_BUCKET: ${{ vars.AWS_S3_BUCKET }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      NILO_SITE_URL: ${{ vars.SITE_URL }}
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: dist/
+      - name: Conferir configuração
+        run: |
+          : "${AWS_REGION:?Configure a variável AWS_REGION}"
+          : "${AWS_S3_BUCKET:?Configure a variável AWS_S3_BUCKET}"
+          : "${AWS_ROLE_ARN:?Configure a variável AWS_ROLE_ARN}"
+          : "${CLOUDFRONT_DISTRIBUTION_ID:?Configure a variável CLOUDFRONT_DISTRIBUTION_ID}"
+          : "${NILO_SITE_URL:?Configure a variável SITE_URL}"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Ajustar URLs públicas
+        run: node scripts/prepare-deploy.mjs
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: nilo-${{ github.run_id }}
+      # Mantém os arquivos antigos para visitantes que ainda estão com o HTML anterior.
+      - name: Publicar assets antes das páginas
+        run: |
+          aws s3 sync dist/assets/ "s3://${AWS_S3_BUCKET}/assets/" --cache-control 'public,max-age=31536000,immutable' --only-show-errors
+          aws s3 sync dist/ "s3://${AWS_S3_BUCKET}/" --exclude 'assets/*' --exclude '*.html' --cache-control 'public,max-age=300' --only-show-errors
+      - name: Publicar páginas
+        run: aws s3 cp dist/ "s3://${AWS_S3_BUCKET}/" --recursive --exclude '*' --include '*.html' --cache-control 'no-cache' --only-show-errors
+      - name: Atualizar cache do CloudFront
+        run: |
+          invalidation_id=$(aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths '/*' --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --id "$invalidation_id"
+      - name: Verificar páginas publicadas
+        run: |
+          for path in / /termos/ /politica-de-privacidade/; do
+            curl --fail --silent --show-error --retry 3 --output /dev/null "${NILO_SITE_URL%/}${path}"
+          done

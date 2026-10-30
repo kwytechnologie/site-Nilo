@@ -8,7 +8,8 @@ npm install
 npm run dev
 ```
 
-- `npm run build` gera `dist/` (publicado pelo workflow do GitHub Pages).
+- `npm run build` gera `dist/` (publicado no S3 com HTTPS pelo CloudFront).
+- CI/CD do GitHub Actions e configuração AWS: [docs/DEPLOY.md](docs/DEPLOY.md).
 - `node scripts/build-logos.mjs` regera as opções de logo em `public/marca/`.
 - Estado do trabalho e próximos passos: `docs/HANDOFF.md`.
 - Decisões em aberto: `DECISOES.md`.
