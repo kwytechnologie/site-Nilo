@@ -2,10 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Site Nilo - S3 privado, CloudFront HTTPS e deploy GitHub OIDC
 
 Parameters:
-  GitHubRepository:
+  GitHubOidcRepository:
     Type: String
-    Default: kwytechnologie/site-Nilo
-    AllowedPattern: '[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+'
+    Default: kwytechnologie@289708947/site-Nilo@1409226262
+    AllowedPattern: '[A-Za-z0-9_@.-]+/[A-Za-z0-9_@.-]+'
+    Description: Identidade do repositorio em sub_claim_prefix retornado pela API OIDC do GitHub
   ExistingGitHubOidcProviderArn:
     Type: String
     Default: ''
@@ -159,7 +160,7 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Sub 'repo:${GitHubRepository}:ref:refs/heads/main'
+                token.actions.githubusercontent.com:sub: !Sub 'repo:${GitHubOidcRepository}:ref:refs/heads/main'
       Policies:
         - PolicyName: PublishSite
           PolicyDocument:

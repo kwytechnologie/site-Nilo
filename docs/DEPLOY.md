@@ -65,7 +65,7 @@ aws cloudformation deploy \
   --template-file infra/site.yml \
   --capabilities CAPABILITY_IAM \
   --parameter-overrides \
-    GitHubRepository=kwytechnologie/site-Nilo \
+    GitHubOidcRepository=kwytechnologie@289708947/site-Nilo@1409226262 \
     DomainName=nilo.kwytech.com \
     CertificateArn=ARN_DO_CERTIFICADO
 ```
@@ -115,7 +115,10 @@ credenciais temporárias por OIDC. A role aceita somente a branch `main` de
 `kwytechnologie/site-Nilo`, e só permite listar/gravar no bucket deste site e
 criar/consultar invalidações da distribuição correspondente.
 
-Se mover ou renomear o repositório, atualize `GitHubRepository` na stack. Se adicionar
+O repositório usa o formato OIDC imutável, com IDs da organização e do repositório.
+Confira o valor em `gh api repos/kwytechnologie/site-Nilo/actions/oidc/customization/sub`
+(campo `sub_claim_prefix`, sem o prefixo `repo:`) antes de adaptar para outro projeto.
+Se mover ou renomear o repositório, atualize `GitHubOidcRepository` na stack. Se adicionar
 um GitHub Environment ao job de deploy, ajuste também a condição `sub` da role:
 o GitHub muda essa identificação ao usar environments.
 
@@ -152,6 +155,7 @@ configure o CNAME `nilo`, atualize `SITE_URL` e publique novamente.
 - [S3 privado com CloudFront OAC](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html)
 - [GitHub OIDC e condições de confiança IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-idp_oidc.html)
 - [Ação de credenciais AWS](https://github.com/aws-actions/configure-aws-credentials)
+- [Formato das identidades OIDC do GitHub](https://docs.github.com/en/actions/reference/security/oidc)
 
 ## Recursos provisionados em 30/10/2026
 
@@ -185,7 +189,7 @@ aws cloudformation deploy \
   --template-file infra/site.yml \
   --capabilities CAPABILITY_IAM \
   --parameter-overrides \
-    GitHubRepository=kwytechnologie/site-Nilo \
+    GitHubOidcRepository=kwytechnologie@289708947/site-Nilo@1409226262 \
     DomainName=nilo.kwytech.com \
     CertificateArn=arn:aws:acm:us-east-1:739022091158:certificate/ca13d0f6-709d-4328-9a74-6142eff5942c \
     ExistingGitHubOidcProviderArn=arn:aws:iam::739022091158:oidc-provider/token.actions.githubusercontent.com
