@@ -1,5 +1,6 @@
 import Lenis from 'lenis';
 import { initGlow } from './glow.js';
+import { initMenu } from './menu.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const AR = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -40,6 +41,28 @@ export function initUI() {
   document.addEventListener('visibilitychange', syncScrolling);
   syncScrolling();
 
+  const closeMenu = initMenu();
+
+  const nav = document.querySelector('[data-nav]');
+
+  // O cartão da seção para logo abaixo do menu: centralizado quando cabe na tela, senão no topo.
+  // offsetTop ignora o deslocamento da animação de entrada, que ainda pode estar aplicado.
+  function topoDoCartao(el) {
+    const card = el.querySelector('.placa, .final') || el;
+    let y = 0;
+    for (let n = card; n; n = n.offsetParent) y += n.offsetTop;
+    const navH = nav.offsetHeight;
+    const folga = Math.max(24, (innerHeight - navH - card.offsetHeight) / 2);
+    return Math.max(0, y - navH - folga);
+  }
+  function irPara(el, suave) {
+    const top = topoDoCartao(el);
+    if (lenis && suave) {
+      lenis.scrollTo(top, { duration: 1.6 });
+      requestLenisFrame();
+    } else scrollTo({ top, behavior: 'instant' });
+  }
+
   // Links internos passam pela rolagem suave.
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (e) => {
@@ -50,16 +73,28 @@ export function initUI() {
       if (!el) return;
       e.preventDefault();
       closeMenu();
-      if (lenis) {
-        lenis.scrollTo(el, { offset: -20, duration: 1.6 });
-        requestLenisFrame();
-      } else el.scrollIntoView({ behavior: 'instant' });
+      irPara(el, true);
       history.replaceState(null, '', id);
     });
   });
 
+  // Quem chega de outra página com #secao (o menu das páginas legais) cai no mesmo lugar. O #
+  // sai do endereço até o load, senão o navegador pula de novo para o topo da seção.
+  const hash = location.hash;
+  let alvoInicial = null;
+  try { alvoInicial = hash.length > 1 && document.getElementById(decodeURIComponent(hash.slice(1))); } catch {}
+  if (alvoInicial) {
+    history.replaceState(null, '', location.pathname + location.search);
+    // já posiciona agora e acerta de novo no load, quando fontes e imagens mudaram a altura
+    irPara(alvoInicial, false);
+    const ir = () => {
+      irPara(alvoInicial, false);
+      history.replaceState(null, '', hash);
+    };
+    document.readyState === 'complete' ? ir() : addEventListener('load', ir, { once: true });
+  }
+
   // Navegação fica sólida depois do topo.
-  const nav = document.querySelector('[data-nav]');
   let solid = null;
   const onScroll = () => {
     const next = scrollY > 40;
@@ -68,21 +103,6 @@ export function initUI() {
   addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  // Menu do celular.
-  const btn = document.querySelector('[data-menu]');
-  const menu = document.getElementById('menu-movel');
-  function closeMenu() {
-    if (!menu.hidden) { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
-  }
-  btn.addEventListener('click', () => {
-    const open = menu.hidden;
-    menu.hidden = !open;
-    btn.setAttribute('aria-expanded', String(open));
-  });
-  addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
-  document.addEventListener('pointerdown', (e) => {
-    if (!menu.hidden && !menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
-  });
 
   initGlow('.placa, .btn, .nav__links a, .rodape');
 

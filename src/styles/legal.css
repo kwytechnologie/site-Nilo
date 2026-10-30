@@ -1,45 +1,134 @@
-/* Páginas legais (privacidade e termos): usam a base clara da prancha da marca (marca.css). */
-html { scroll-behavior: smooth; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+/* Páginas legais (privacidade e termos): estrutura do site da KWY, nas cores e fontes do Nilo.
+   A base (cores, navegação, botões, rodapé) vem do main.css. */
+.pagina-legal { --fundo: #0B1F2A; --cartao: #10293A; --borda: rgb(242 233 216 / 0.1); background: #050d12; }
+html:has(.pagina-legal) { scroll-behavior: smooth; scroll-padding-top: 96px; }
+@media (prefers-reduced-motion: reduce) { html:has(.pagina-legal) { scroll-behavior: auto; } }
 
-.legal { display: grid; gap: clamp(28px, 5vw, 64px); padding-bottom: clamp(48px, 8vw, 96px); }
-@media (min-width: 900px) { .legal { grid-template-columns: 260px minmax(0, 46rem); } }
+.legal-container { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+@media (max-width: 640px) { .legal-container { padding: 0 20px; } }
 
-.indice { align-self: start; font-size: .95rem; }
-@media (min-width: 900px) { .indice { position: sticky; top: 24px; } }
-.indice ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border-left: 2px solid var(--linha); }
-.indice a { display: block; padding: 5px 0 5px 14px; color: var(--tinta); text-decoration: none; }
-.indice a { margin-left: -2px; border-left: 2px solid transparent; transition: color .2s ease, border-color .2s ease; }
-.indice a:hover { color: var(--kemet); text-decoration: underline; }
-.indice a[aria-current] { color: var(--kemet); font-weight: 700; border-left-color: var(--faianca); }
-.leia { transition: background-color .2s ease, transform .2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow .2s ease; }
-@media (hover: hover) and (pointer: fine) {
-  .leia:hover { background: #fff8ec; transform: translateY(-3px); box-shadow: 0 12px 24px -14px rgb(11 31 42 / 0.45); }
+/* ── Cortina: o conteúdo cobre o rodapé e sobe no fim, revelando ele ─ */
+.cortina { position: relative; z-index: 1; background: var(--fundo); border-radius: 0 0 32px 32px; overflow: clip; box-shadow: 0 30px 60px rgb(0 0 0 / 0.45); }
+.pagina-legal .rodape { position: sticky; bottom: 0; z-index: 0; margin-top: 0; background: #050d12; padding-top: 72px; }
+@media (max-width: 768px) {
+  .cortina { border-radius: 0 0 20px 20px; }
+  /* no celular o rodapé é mais alto que a tela: volta ao fluxo normal para aparecer inteiro */
+  .pagina-legal .rodape { position: relative; }
 }
-.leia:active { transform: scale(.97); }
 
-.texto section { scroll-margin-top: 24px; padding-top: 8px; }
-.texto section + section { margin-top: 40px; }
-.texto h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); line-height: 1.05; margin-bottom: 14px; }
-.texto h3 { font-size: 1.2rem; margin: 22px 0 8px; }
-.texto p + p, .texto p + ul, .texto ul + p { margin-top: 12px; }
-.texto ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
-.texto a { color: #0B6170; font-weight: 600; }
-.destaque { padding: 14px 18px; border-radius: 12px; background: #fff8ec; border: 1px solid var(--linha); border-left: 4px solid var(--faianca); }
-.destaque + p, p + .destaque, ul + .destaque, .destaque + ul { margin-top: 12px; }
+/* ── Topo: o rio do site principal ao entardecer, coberto pela fumaça escura ── */
+.legal-hero {
+  padding: 168px 0 0;
+  background:
+    linear-gradient(180deg, rgb(7 20 27 / 0.55) 0%, rgb(7 20 27 / 0.72) 55%, var(--fundo) 100%),
+    url('/img/poster-rio.jpg') center 42% / cover;
+}
+.legal-hero__inner { max-width: 760px; }
+.legal-hero .eyebrow { text-shadow: 0 1px 2px rgb(7 20 27 / 0.9); }
+.legal-hero__titulo { font-size: clamp(2.6rem, 6vw, 4.8rem); line-height: .9; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 20px; text-shadow: 0 2px 40px rgb(11 31 42 / 0.6); }
+.legal-hero__titulo span { display: block; }
+.legal-hero__titulo span + span { color: var(--ouro); }
+.legal-hero__sub { font-size: 1.1rem; color: var(--linho); max-width: 600px; margin-bottom: 24px; text-shadow: 0 1px 18px rgb(11 31 42 / 0.7); }
+.legal-hero__info { display: flex; flex-wrap: wrap; gap: 16px 28px; font-size: .88rem; color: var(--linho-70); margin-bottom: 56px; }
+.legal-hero__info span { display: inline-flex; align-items: center; gap: 8px; }
+.legal-hero__info svg { color: var(--faianca); }
+/* faixa dupla de ouro, como os registros das pinturas egípcias */
+.legal-hero__sep { height: 5px; border-top: 1.5px solid rgb(217 164 65 / 0.55); border-bottom: 1.5px solid rgb(217 164 65 / 0.3); }
 
-.contato { position: relative; isolation: isolate; --glow-cor: rgb(54 179 168 / 0.16); --glow-tam: 420px; margin-top: 48px; background: var(--kemet); color: #F2E9D8; border-radius: 22px; padding: 28px; display: grid; gap: 8px; }
-.contato h2 { color: #F2E9D8; margin-bottom: 6px; }
-.contato a { color: #7FD8CF; }
-.leia { position: relative; isolation: isolate; --glow-cor: rgb(54 179 168 / 0.22); --glow-tam: 160px; display: inline-block; margin-top: 28px; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--faianca); color: var(--kemet); font-weight: 700; text-decoration: none; }
+/* ── Corpo ──────────────────────────────────────────────────── */
+.legal { display: flex; flex-direction: column; gap: 40px; padding-top: 48px; padding-bottom: 72px; }
+@media (min-width: 900px) { .legal { flex-direction: row; } }
 
-/* Rodapé igual ao do site (main.css), em fundo escuro sólido. */
-.rodape { position: relative; isolation: isolate; --glow-cor: rgb(217 164 65 / 0.08); --glow-tam: 520px; display: grid; grid-template-columns: 1.3fr 1fr 1.2fr 1fr; gap: 36px; padding: 56px var(--gutter) 48px; background: var(--kemet); color: rgb(242 233 216 / 0.72); font-size: .94rem; }
-.rodape h3 { font: 700 .74rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #D9A441; margin-bottom: 12px; }
-.rodape b { color: #F2E9D8; }
-.rodape__marca img { height: 54px; width: auto; margin-bottom: 14px; }
-.rodape__col { display: grid; align-content: start; gap: 8px; }
-.rodape__col a { color: inherit; text-decoration: none; }
-.rodape__col a:hover { color: #F2E9D8; text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 980px) { .rodape { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .rodape { grid-template-columns: 1fr; gap: 28px; } }
+/* Índice: caixa de vidro um pouco mais clara que o fundo, fixa ao rolar */
+.indice { flex-shrink: 0; }
+@media (min-width: 900px) { .indice { width: 250px; } }
+.indice summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-radius: var(--raio-estela); background: var(--vidro); border: 1px solid var(--linho-15); font: 700 .78rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ouro); }
+.indice summary::-webkit-details-marker { display: none; }
+.indice summary::after { content: '+'; font: 400 1.4rem/1 var(--mono); color: var(--ouro); transition: transform .25s var(--ease-out); }
+.indice[open] summary::after { transform: rotate(45deg); }
+@media (min-width: 900px) { .indice summary { display: none; } }
+.indice__caixa {
+  position: relative; isolation: isolate; margin-top: 8px; padding: 34px 20px 20px; border-radius: var(--raio-estela);
+  background: var(--vidro); border: 1px solid var(--linho-15); box-shadow: var(--sombra);
+  -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  --glow-cor: rgb(217 164 65 / 0.1); --glow-tam: 260px;
+}
+/* a mesma faixa dupla de ouro das placas da página principal */
+.indice__caixa::before { content: ''; position: absolute; left: 22px; right: 22px; top: 12px; height: 5px; border-top: 1.5px solid rgb(217 164 65 / 0.55); border-bottom: 1.5px solid rgb(217 164 65 / 0.3); }
+@media (min-width: 900px) { .indice__caixa { position: sticky; top: 96px; margin-top: 0; } }
+.indice__titulo { font: 700 .74rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ouro); margin-bottom: 14px; }
+.indice__grupo { font: 700 .7rem var(--mono); letter-spacing: .1em; color: var(--linho-50); margin-bottom: 8px; }
+.indice ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.indice a {
+  display: block; padding: 7px 12px; border-radius: 8px; border-left: 2px solid transparent;
+  font-size: .88rem; color: var(--linho-70); text-decoration: none;
+  transition: color .2s ease, background-color .2s ease;
+}
+.indice a:hover { color: var(--ouro); }
+.indice a[aria-current] { color: var(--linho); font-weight: 600; background: rgb(217 164 65 / 0.08); border-left-color: var(--ouro); }
+@media (max-height: 820px) and (min-width: 900px) {
+  .indice__caixa { top: 84px; padding: 30px 14px 14px; }
+  .indice a { padding: 4px 10px; font-size: .82rem; }
+}
+
+/* Texto */
+.texto { flex: 1; max-width: 720px; color: var(--linho-70); }
+.texto section { scroll-margin-top: 100px; }
+.texto section + section { margin-top: 52px; padding-top: 44px; border-top: 1px solid rgb(217 164 65 / 0.18); }
+.texto h2 { font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.05; color: var(--linho); margin-bottom: 16px; }
+.texto h3 { font-size: 1.2rem; color: var(--linho); margin: 24px 0 10px; }
+.texto p, .texto li { line-height: 1.75; }
+.texto p + p, .texto p + ul, .texto ul + p { margin-top: 14px; }
+.texto ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+/* gota da água, a mesma das listas da página principal */
+.texto li { position: relative; padding-left: 22px; }
+.texto li::before { content: ''; position: absolute; left: 0; top: .72em; width: 9px; height: 9px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--faianca); }
+.texto b { color: var(--linho); }
+.texto a { color: var(--faianca); }
+.destaque { padding: 16px 18px; border-radius: 0 12px 12px 0; background: var(--pedra); border-left: 4px solid var(--ouro); color: var(--linho); }
+.destaque + p, p + .destaque, ul + .destaque, .destaque + ul { margin-top: 16px; }
+
+/* Leia também: cartão que sobe e brilha ao passar o mouse */
+.leia {
+  position: relative; isolation: isolate; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 56px; padding: 34px 28px 24px; border-radius: var(--raio-estela); background: var(--pedra); border: 1px solid rgb(217 164 65 / 0.25);
+  color: var(--linho); text-decoration: none;
+  --glow-cor: rgb(217 164 65 / 0.14); --glow-tam: 240px;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s var(--ease-out);
+}
+.leia::before { content: ''; position: absolute; left: 28px; right: 28px; top: 12px; height: 5px; border-top: 1.5px solid rgb(217 164 65 / 0.55); border-bottom: 1.5px solid rgb(217 164 65 / 0.3); }
+.leia__rotulo { display: block; font: 700 .7rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ouro); margin-bottom: 4px; }
+.leia__titulo { font: 800 1.6rem var(--display); color: var(--linho); }
+.leia svg { color: var(--cornalina); flex-shrink: 0; transition: transform .2s var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .leia:hover { border-color: rgb(217 164 65 / 0.6); transform: translateY(-3px); box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.6); }
+  .leia:hover svg { transform: translateX(4px); }
+}
+.leia:active { transform: scale(.98); }
+
+/* ── Contato: o fundo do poço, como no fim da página principal ── */
+.legal-contato {
+  padding: 80px 0 88px;
+  background:
+    linear-gradient(180deg, var(--fundo) 0%, rgb(7 20 27 / 0.8) 30%, rgb(7 20 27 / 0.86) 100%),
+    url('/img/poster-poco.jpg') center / cover;
+}
+.legal-contato h2 { font-size: clamp(2rem, 4vw, 2.8rem); color: var(--linho); margin-bottom: 8px; }
+.legal-contato__lead { color: var(--linho-70); margin-bottom: 28px; }
+.legal-contato__card {
+  position: relative; isolation: isolate; max-width: 720px; padding: 38px 28px 26px; border-radius: var(--raio-estela);
+  background: var(--pedra); border: 1px solid rgb(217 164 65 / 0.25); box-shadow: var(--sombra); display: grid; gap: 14px;
+  -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  --glow-cor: rgb(217 164 65 / 0.12); --glow-tam: 380px;
+  transition: transform .2s var(--ease-out), box-shadow .2s ease;
+}
+.legal-contato__card::before { content: ''; position: absolute; left: 28px; right: 28px; top: 12px; height: 5px; border-top: 1.5px solid rgb(217 164 65 / 0.55); border-bottom: 1.5px solid rgb(217 164 65 / 0.3); }
+@media (hover: hover) and (pointer: fine) {
+  .legal-contato__card:hover { transform: translateY(-3px); box-shadow: 0 30px 80px -24px rgb(0 0 0 / 0.8); }
+}
+.legal-contato__empresa { font: 800 1.3rem var(--display); color: var(--linho); }
+.legal-contato__linha { display: flex; align-items: flex-start; gap: 12px; color: var(--linho-70); font-size: .95rem; line-height: 1.6; }
+.legal-contato__linha svg { color: var(--ouro); flex-shrink: 0; margin-top: 2px; }
+.legal-contato__linha b { color: var(--linho); }
+.legal-contato__linha a { color: var(--faianca); }
+.legal-contato__data { margin-top: 24px; font: 400 .74rem var(--mono); letter-spacing: .06em; color: var(--linho-50); }

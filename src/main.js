@@ -5,8 +5,12 @@ import '@fontsource/space-mono/700.css';
 import '@fontsource/reem-kufi/latin-600.css';
 import './styles/main.css';
 import { initUI } from './ui/ui.js';
+import { initCookies } from './ui/cookies.js';
+import { initCadastro } from './ui/cadastro.js';
 
 const ui = initUI();
+initCookies({ politica: 'politica-de-privacidade/' });
+initCadastro();
 // O 3D vem num pacote separado: o texto e os botões já funcionam enquanto ele baixa.
 import('./scenes/stage.js').then(({ initStage }) => initStage({ onCovado: ui.onCovado })).catch((err) => {
   // Se o 3D falhar, o site continua legível com o fundo estático.

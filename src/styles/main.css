@@ -294,7 +294,13 @@ main { position: relative; z-index: 1; }
 .rodape__col { display: grid; align-content: start; gap: 8px; }
 .rodape__col a { text-decoration: none; }
 .rodape__col a:hover { color: var(--linho); text-decoration: underline; text-underline-offset: 3px; }
-.rodape__nota { grid-column: 1 / -1; padding-top: 22px; border-top: 1px solid var(--linho-15); font-size: .8rem; color: var(--linho-50); }
+.rodape__cookies { justify-self: start; padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.rodape__cookies:hover { color: var(--linho); text-decoration: underline; text-underline-offset: 3px; }
+.rodape__copy { grid-column: 1 / -1; padding-top: 20px; border-top: 1px solid var(--linho-15); text-align: center; font-size: .8rem; color: var(--linho-50); }
+.rodape__nota + .rodape__copy { border-top: 0; padding-top: 0; }
+.rodape__nota { grid-column: 1 / -1; padding-top: 22px; border-top: 1px solid var(--linho-15); font-size: .8rem; color: var(--linho-50); text-align: center; }
+.rodape__mapa { text-decoration: none; }
+.rodape__mapa:hover { color: var(--linho); text-decoration: underline; text-underline-offset: 3px; }
 
 /* ── Reveals (o JS adiciona .is-dentro) ─────────────────────── */
 .js .placa, .js .final, .js .hero > * { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease); }

@@ -1,0 +1,72 @@
+/* Aviso de cookies (src/ui/cookies.js): funciona como o da KWY, mas com a cara das placas do Nilo. */
+.cookies-travado, .cookies-travado body { overflow: hidden; }
+.cookies-raiz[hidden] { display: none; }
+
+.cookies-overlay {
+  position: fixed; inset: 0; z-index: 139;
+  background: rgb(5 13 18 / 0.62);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity .3s ease;
+}
+.cookies {
+  position: fixed; left: 20px; bottom: 20px; z-index: 140;
+  width: 400px; max-width: calc(100vw - 40px); padding: 34px 24px 22px; border-radius: var(--raio-estela);
+  background: rgb(11 31 42 / 0.82);
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--linho-15);
+  box-shadow: var(--sombra), inset 0 1px 0 rgb(242 233 216 / 0.08);
+  color: var(--linho-70); font-family: var(--texto);
+  opacity: 0; transform: translateY(24px);
+  transition: opacity .35s var(--ease), transform .35s var(--ease);
+}
+.cookies-raiz.is-aberto .cookies-overlay { opacity: 1; }
+.cookies-raiz.is-aberto .cookies { opacity: 1; transform: none; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .cookies { background: rgb(11 31 42 / 0.97); } }
+@media (prefers-reduced-transparency: reduce) { .cookies { background: rgb(11 31 42 / 0.97); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@media (prefers-reduced-motion: reduce) { .cookies { transform: none; } }
+
+.cookies::before { content: ''; position: absolute; left: 24px; right: 24px; top: 12px; height: 5px; border-top: 1.5px solid rgb(217 164 65 / 0.55); border-bottom: 1.5px solid rgb(217 164 65 / 0.3); }
+.cookies__head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+/* a onda do hieróglifo da água, a mesma dos rótulos da página principal */
+.cookies__head::before {
+  content: ''; width: 28px; height: 8px; flex: none; background: var(--ouro);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 8'%3E%3Cpath d='M1 7 L3.5 1 L6 7 L8.5 1 L11 7 L13.5 1 L16 7 L18.5 1 L21 7 L23.5 1 L26 7' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 8'%3E%3Cpath d='M1 7 L3.5 1 L6 7 L8.5 1 L11 7 L13.5 1 L16 7 L18.5 1 L21 7 L23.5 1 L26 7' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.cookies__title { font: 800 1.45rem/1.05 var(--display); color: var(--linho); }
+.cookies__text { font-size: .86rem; line-height: 1.55; margin-bottom: 14px; }
+.cookies__text a { color: var(--faianca); font-weight: 600; }
+
+.cookies__prefs { display: flex; flex-direction: column; gap: 0; margin-bottom: 16px; border-top: 1px solid rgb(217 164 65 / 0.18); }
+.cookies__pref { padding: 10px 0; border-bottom: 1px solid rgb(217 164 65 / 0.18); }
+.cookies__prefs[hidden] { display: none; }
+.cookies__pref { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; position: relative; }
+.cookies__pref--fixa { cursor: default; }
+.cookies__pref-nome { display: block; font: 700 .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ouro); }
+.cookies__pref-desc { display: block; font-size: .72rem; color: var(--linho-50); line-height: 1.4; }
+.cookies__check { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.cookies__switch { flex-shrink: 0; width: 34px; height: 20px; border-radius: 999px; background: rgb(242 233 216 / 0.14); position: relative; transition: background-color .25s ease; }
+.cookies__switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--linho); transition: transform .25s var(--ease); }
+.cookies__switch.is-on, .cookies__check:checked + .cookies__switch { background: var(--faianca); }
+.cookies__switch.is-on::after, .cookies__check:checked + .cookies__switch::after { transform: translateX(14px); }
+.cookies__switch.is-fixo { opacity: .55; }
+.cookies__check:focus-visible + .cookies__switch { outline: 2.5px solid var(--ouro); outline-offset: 3px; }
+
+.cookies__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.cookies__actions [hidden] { display: none; }
+.cookies__btn {
+  font: 600 .86rem var(--texto); min-height: 40px; padding: 0 16px; border-radius: 10px;
+  border: 1.5px solid var(--linho-50); background: transparent; color: var(--linho); cursor: pointer;
+  transition: border-color .2s ease, background-color .2s ease, transform .16s var(--ease-out);
+}
+.cookies__btn:hover { border-color: var(--linho); background: rgb(242 233 216 / 0.06); }
+.cookies__btn:active { transform: scale(.97); }
+.cookies__btn--primario { background: var(--cornalina); border-color: transparent; color: var(--noite); box-shadow: 0 10px 30px -10px rgb(232 101 43 / 0.7); }
+.cookies__btn--primario:hover { background: #f07438; }
+.cookies__link { font: 600 .86rem var(--texto); color: var(--faianca); background: none; border: 0; padding: 0; cursor: pointer; }
+.cookies__link:hover { text-decoration: underline; }
+
+@media (max-width: 480px) {
+  .cookies { left: 12px; right: 12px; bottom: 12px; width: auto; max-width: none; padding: 16px; }
+  .cookies__actions .cookies__btn { flex: 1; text-align: center; }
+}
