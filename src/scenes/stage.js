@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createRiver } from './river.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
+const yieldToPage = () => globalThis.scheduler?.yield?.() ?? new Promise(resolve => setTimeout(resolve, 0));
 
 // Um único fator temporal para progresso, fronteira e lente: resize não altera
 // isoladamente o denominador de approach. Função pura de DOM/assets para QA Node.
@@ -170,6 +171,7 @@ export async function initStage({ onCovado } = {}) {
     navigation.viewRatio = frameState.viewRatio = layout.width / layout.height;
     scene.update(frameState);
     const uploadObjects = [];
+    const textures = new Set();
     let light = false, caster = false;
     scene.scene.traverse((object) => {
       if (object.isLight && object.castShadow && object.shadow) {
@@ -179,9 +181,20 @@ export async function initStage({ onCovado } = {}) {
       }
       if (object.isMesh && object.castShadow) caster = true;
       if ((object.isMesh || object.isPoints) && object.frustumCulled) uploadObjects.push(object);
+      for (const material of [object.material].flat()) {
+        if (material) for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
+      }
     });
     scene.hasShadows = quality.shadows && light && caster;
     scene.shadowsReady = false;
+    // Divide o upload inicial para não bloquear os controles durante o carregamento.
+    for (const texture of textures) {
+      await yieldToPage();
+      if (failed) return null;
+      renderer.initTexture(texture);
+    }
+    await yieldToPage();
+    if (failed) return null;
     // Sem compile síncrono de fallback: versões antigas compilam no primeiro render.
     if (typeof renderer.compileAsync === 'function') {
       const previousShadows = renderer.shadowMap.enabled;
@@ -195,23 +208,22 @@ export async function initStage({ onCovado } = {}) {
     if (shaderError) throw new Error('Falha ao compilar shaders');
     if (failed) return null;
     // Shaders prontos ainda não significam texturas/geometria enviadas à GPU.
-    // Um render pequeno fora da tela prepara também a sombra antes da descida.
-    const warmup = new THREE.WebGLRenderTarget(16, 16);
-    const previousTarget = renderer.getRenderTarget();
+    // Mesmo destino do compileAsync: um render target mudaria os shaders de cor/tom.
+    // O canvas permanece coberto pelo poster até o primeiro quadro completo.
+    const previousViewport = renderer.getViewport(new THREE.Vector4());
     const previousShadows = renderer.shadowMap.enabled;
     try {
       // Um único warmup envia também o interior, mesmo distante/oculto na chegada.
       for (const object of uploadObjects) object.frustumCulled = false;
-      renderer.setRenderTarget(warmup);
+      renderer.setViewport(0, 0, 16, 16);
       renderer.shadowMap.enabled = scene.hasShadows;
       renderer.shadowMap.needsUpdate = scene.hasShadows;
       renderer.render(scene.scene, scene.camera);
       scene.shadowsReady = true;
     } finally {
       for (const object of uploadObjects) object.frustumCulled = true;
-      renderer.setRenderTarget(previousTarget);
+      renderer.setViewport(previousViewport);
       renderer.shadowMap.enabled = previousShadows;
-      warmup.dispose();
     }
     if (shaderError) throw new Error('Falha ao preparar o primeiro quadro');
     // O viewport pode ter mudado durante os awaits.

@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 const [rootArg = 'dist', label = 'current', mode = 'desktop'] = process.argv.slice(2);
 const root = resolve(rootArg), mobile = mode === 'mobile';
 const output = resolve('.qa', `${label}-${mode}`);
+const remote = process.env.NILO_QA_URL;
 await mkdir(output, { recursive: true });
 const mime = { '.js':'text/javascript', '.css':'text/css', '.html':'text/html', '.glb':'model/gltf-binary', '.jpg':'image/jpeg', '.webp':'image/webp', '.svg':'image/svg+xml' };
 const server = createServer(async (req, res) => {
@@ -46,10 +47,11 @@ try {
   const send=(method,params={})=>new Promise((r,j)=>{const id=++serial; const timer=setTimeout(()=>{pending.delete(id);j(new Error(method+' timeout'));},45000);pending.set(id,m=>{clearTimeout(timer);m.error?j(new Error(JSON.stringify(m.error))):r(m.result);});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression => (await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true})).result?.value;
   for (const domain of ['Runtime','Page','Network']) await send(`${domain}.enable`);
+  if(process.env.NILO_QA_PROFILE){await send('Profiler.enable');await send('Profiler.start');}
   await send('Emulation.setDeviceMetricsOverride',{width:mobile?390:1440,height:mobile?844:900,deviceScaleFactor:mobile?2:1,mobile});
   if(mobile){await send('Emulation.setTouchEmulationEnabled',{enabled:true});await send('Emulation.setCPUThrottlingRate',{rate:4});}
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
-    window.__qa={tasks:[],frames:[],draws:0,triangles:0,last:0};
+    window.__qa={tasks:[],frames:[],draws:0,triangles:0,last:0,readyAt:0};
     new PerformanceObserver(l=>__qa.tasks.push(...l.getEntries().map(e=>({start:e.startTime,duration:e.duration})))).observe({type:'longtask',buffered:true});
     for(const proto of [WebGL2RenderingContext.prototype,WebGLRenderingContext.prototype]) {
       for(const key of ['drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced']) {
@@ -57,10 +59,14 @@ try {
         proto[key]=function(...a){__qa.draws++;const n=key.includes('Elements')?a[1]:a[2];const instances=key.includes('Instanced')?a.at(-1):1;if(a[0]===4)__qa.triangles+=n/3*instances;return original.apply(this,a);};
       }
     }
-    function sample(t){if(__qa.last)__qa.frames.push({ms:t-__qa.last,draws:__qa.draws,triangles:__qa.triangles});__qa.last=t;__qa.draws=0;__qa.triangles=0;requestAnimationFrame(sample)}requestAnimationFrame(sample);
+    function sample(t){if(!__qa.readyAt&&window.__niloDebug?.ready&&!__niloDebug.fallback)__qa.readyAt=t;if(__qa.last)__qa.frames.push({ms:t-__qa.last,draws:__qa.draws,triangles:__qa.triangles});__qa.last=t;__qa.draws=0;__qa.triangles=0;requestAnimationFrame(sample)}requestAnimationFrame(sample);
   `});
-  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/site-Nilo/?debug3d`});
+  const base=remote || `http://127.0.0.1:${server.address().port}/site-Nilo/`;
+  await send('Page.navigate',{url:base+'?debug3d'});
   await sleep(mobile?10000:6500);
+  if(process.env.NILO_QA_PROFILE)await writeFile(join(output,'startup.cpuprofile'),JSON.stringify((await send('Profiler.stop')).profile));
+  const startup=await evaluate('({readyAt:__qa.readyAt,tasks:__qa.tasks.slice()})');
+  await evaluate("document.querySelector('[data-necessarios]')?.click()");await sleep(350);
   const samples=[];
   const route=process.env.NILO_QA_DEFECTS
     ? [['faixa-a','#nilometro',0],['faixa-b','#nilometro',.02],['patamar-a','#nilometro',.46],['patamar-b','#nilometro',.50],['inicio-escada','#nilometro',.54]]
@@ -88,10 +94,13 @@ try {
     samples.push({name,...sample});
   }
   const tasks=await evaluate('__qa.tasks');
-  const resources=await evaluate(`performance.getEntriesByType('resource').map(e=>({name:e.name.split('/').pop(),bytes:e.transferSize,duration:e.duration}))`);
+  const resources=await evaluate(`performance.getEntriesByType('resource').map(e=>({name:e.name.split('/').pop(),bytes:e.transferSize,duration:e.duration,start:e.startTime,responseStart:e.responseStart,responseEnd:e.responseEnd}))`);
   const runtimeErrors=[...errors], initialBadRequests=[...badRequests], checks=[];
+  checks.push({name:'cold start renders 3D',pass:startup.readyAt>0});
+  const models=resources.filter(r=>r.name.includes('.glb'));
+  const stage=resources.find(r=>r.name.startsWith('stage-'));
+  checks.push({name:'models download once, before 3D script finishes',pass:models.length===3&&new Set(models.map(r=>r.name)).size===3&&models.every(r=>r.start<stage?.responseEnd)});
   if(process.env.NILO_QA_CHECKS) {
-    const base=`http://127.0.0.1:${server.address().port}/site-Nilo/`;
     await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
     const seam=[];
     for(const delta of [-2,0,2,0,-2]){
@@ -122,7 +131,7 @@ try {
     await send('Page.navigate',{url:base+'?debug3d&failed=1#perguntas'});await sleep(3500);
     checks.push({name:'failed model keeps readable poster',pass:await evaluate("__niloDebug.fallback && !__niloDebug.loading && !!__niloDebug.error && getComputedStyle(document.querySelector('main')).visibility!=='hidden'")});
   }
-  const report={label,mode,cpuThrottle:mobile?4:1,samples,longTasks:tasks,errors:runtimeErrors,badRequests:initialBadRequests,resources,checks};
+  const report={label,mode,cpuThrottle:mobile?4:1,startup,samples,longTasks:tasks,errors:runtimeErrors,badRequests:initialBadRequests,resources,checks};
   await writeFile(join(output,'report.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify({label,mode,samples,longTasks:tasks.length,errors:runtimeErrors,badRequests:initialBadRequests,checks},null,2));
   if(runtimeErrors.length || initialBadRequests.length || samples.some(s=>s.overflow || s.fallback?.includes('sem-3d')) || checks.some(c=>!c.pass))process.exitCode=1;

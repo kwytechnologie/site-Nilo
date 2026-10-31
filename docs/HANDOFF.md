@@ -1,5 +1,13 @@
 # Passagem de bastão: site do Nilo
 
+## Atualização de 31/10/2026: primeira abertura
+
+O endereço atual é https://nilo.kwytech.com/, servido pelo fluxo S3/CloudFront existente. As referências a GitHub Pages abaixo são históricas.
+
+O warmup estava recompilando shaders porque usava um render target com tratamento de cor diferente do canvas. Agora usa o mesmo destino da compilação assíncrona, com viewport pequeno escondido pelo poster; o upload das texturas cede tempo ao navegador. Os três GLBs são antecipados pelo HTML via links criados em `src/main.js`, com URL/revisão compartilhada em `src/scenes/model-url.js`, sem download duplicado. Nenhuma alteração nos modelos ou no visual aprovado.
+
+`scripts/check-scene.mjs` abre perfil novo, registra primeira exibição e tarefas longas, e aceita `NILO_QA_URL` para conferir produção e `NILO_QA_PROFILE=1` para capturar CPU. Foram conferidos desktop, viewport móvel com CPU 4×, entrada contínua, menu, rotação da tela, reduced motion e fallback. Os resultados variam com rede/GPU; telefone físico ainda não medido.
+
 ## Atualização de 15/10/2026
 
 O 3D foi revisado no Blender, com modelos editáveis em `art/nilo.blend` e GLB em `public/models/`. O rio e o nilômetro agora são carregados assincronamente; materiais, vegetação, iluminação e runtime mobile foram atualizados. Para o estado atual, ler primeiro `docs/BLENDER-2026-10-15.md` e `art/README.md`. O relato abaixo preserva o histórico de 07/10 e não descreve mais toda a implementação 3D atual.

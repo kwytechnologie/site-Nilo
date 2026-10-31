@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 
 test('CloudFront resolve índices e preserva os caminhos de assets', async () => {
-  const template = await readFile(new URL('../infra/site.yml', import.meta.url), 'utf8');
+  const template = (await readFile(new URL('../infra/site.yml', import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
   const source = template.match(/FunctionCode: \|\n([\s\S]*?)\n\n/)[1]
     .split('\n').map((line) => line.slice(8)).join('\n');
   const handler = runInNewContext(`${source}\nhandler`);

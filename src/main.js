@@ -7,6 +7,16 @@ import './styles/main.css';
 import { initUI } from './ui/ui.js';
 import { initCookies } from './ui/cookies.js';
 import { initCadastro } from './ui/cadastro.js';
+import { modelUrl } from './scenes/model-url.js';
+
+// Baixa os mesmos arquivos enquanto o pacote 3D carrega, sem esperar seu código.
+if (!new URLSearchParams(location.search).has('sem3d')) {
+  for (const name of ['vegetation', 'nilometer', 'guardians']) {
+    const preload = document.createElement('link');
+    Object.assign(preload, { rel: 'preload', as: 'fetch', href: modelUrl(name), crossOrigin: 'anonymous' });
+    document.head.append(preload);
+  }
+}
 
 const ui = initUI();
 initCookies({ politica: 'politica-de-privacidade/' });
