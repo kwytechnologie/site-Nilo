@@ -3,6 +3,7 @@ import { createRiver } from './river.js';
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const yieldToPage = () => globalThis.scheduler?.yield?.() ?? new Promise(resolve => setTimeout(resolve, 0));
+const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 
 // Um único fator temporal para progresso, fronteira e lente: resize não altera
 // isoladamente o denominador de approach. Função pura de DOM/assets para QA Node.
@@ -49,6 +50,7 @@ export async function initStage({ onCovado } = {}) {
 
   let renderer = null, river = null, nilo = null;
   let riverLoading = !params.has('sem3d'), failed = false;
+  let detailsReady = false;
   let failure = null, shaderError = false, activeScene = 'rio';
   let raf = 0, layoutDirty = true, snap = true;
   let scroll = window.scrollY, lastNow = 0, elapsed = 0, pRio = 0, pPoco = 0;
@@ -72,8 +74,9 @@ export async function initStage({ onCovado } = {}) {
       get dpr() { return renderer?.getPixelRatio() ?? 0; },
       get activeScene() { return activeScene; },
       get ready() { return !failed && !!(activeScene === 'rio' ? river : nilo); },
-      get loading() { return riverLoading; },
-      get scenes() { return { rio: !!river, poco: !!nilo }; },
+      get loading() { return !failed && (riverLoading || !detailsReady); },
+      get detailsReady() { return detailsReady; },
+      get scenes() { return { rio: !!river, poco: detailsReady }; },
       get frameMs() { return frameMs; },
       get averageFrameMs() { return averageMs; },
       get fallback() { return posterShown; },
@@ -161,35 +164,37 @@ export async function initStage({ onCovado } = {}) {
 
   function invalidateLayout() { layoutDirty = true; requestFrame(); }
 
-  async function prepare(scene) {
+  async function prepare(scene, target=scene.scene) {
     if (!scene?.scene || !scene.camera || typeof scene.update !== 'function' || typeof scene.resize !== 'function') {
       throw new Error('Contrato de cena inválido');
     }
     if (failed) return null;
-    scene.resize(layout.width, layout.height);
-    navigation.portaStart = frameState.portaStart = layout.portaStart;
-    navigation.viewRatio = frameState.viewRatio = layout.width / layout.height;
-    scene.update(frameState);
+    const background = target !== scene.scene;
+    if(!background) {
+      scene.resize(layout.width, layout.height);
+      navigation.portaStart = frameState.portaStart = layout.portaStart;
+      navigation.viewRatio = frameState.viewRatio = layout.width / layout.height;
+      scene.update(frameState);
+    }
     const uploadObjects = [];
     const textures = new Set();
-    let light = false, caster = false;
+    let light = false;
     scene.scene.traverse((object) => {
       if (object.isLight && object.castShadow && object.shadow) {
         light = true;
         object.shadow.autoUpdate = false;
-        object.shadow.needsUpdate = true;
       }
-      if (object.isMesh && object.castShadow) caster = true;
+    });
+    target.traverse((object) => {
       if ((object.isMesh || object.isPoints) && object.frustumCulled) uploadObjects.push(object);
       for (const material of [object.material].flat()) {
         if (material) for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
       }
     });
-    scene.hasShadows = quality.shadows && light && caster;
-    scene.shadowsReady = false;
+    scene.hasShadows = quality.shadows && light;
     // Divide o upload inicial para não bloquear os controles durante o carregamento.
     for (const texture of textures) {
-      await yieldToPage();
+      await (background ? nextFrame() : yieldToPage());
       if (failed) return null;
       renderer.initTexture(texture);
     }
@@ -197,33 +202,71 @@ export async function initStage({ onCovado } = {}) {
     if (failed) return null;
     // Sem compile síncrono de fallback: versões antigas compilam no primeiro render.
     if (typeof renderer.compileAsync === 'function') {
-      const previousShadows = renderer.shadowMap.enabled;
-      let compilation;
-      try {
-        renderer.shadowMap.enabled = scene.hasShadows;
-        compilation = renderer.compileAsync(scene.scene, scene.camera);
-      } finally { renderer.shadowMap.enabled = previousShadows; }
-      await withTimeout(compilation, 15000, 'Tempo esgotado ao preparar shaders');
+      for(const object of background ? uploadObjects : [target]) {
+        if(background)await nextFrame();
+        if(failed)return null;
+        const previousShadows = renderer.shadowMap.enabled;
+        let compilation;
+        try {
+          renderer.shadowMap.enabled = scene.hasShadows;
+          compilation = renderer.compileAsync(object, scene.camera, scene.scene);
+        } finally { renderer.shadowMap.enabled = previousShadows; }
+        await withTimeout(compilation, 15000, 'Tempo esgotado ao preparar shaders');
+      }
     }
     if (shaderError) throw new Error('Falha ao compilar shaders');
     if (failed) return null;
     // Shaders prontos ainda não significam texturas/geometria enviadas à GPU.
     // Mesmo destino do compileAsync: um render target mudaria os shaders de cor/tom.
     // O canvas permanece coberto pelo poster até o primeiro quadro completo.
-    const previousViewport = renderer.getViewport(new THREE.Vector4());
-    const previousShadows = renderer.shadowMap.enabled;
+    const others=[];
+    if(background) {
+      const own=new Set(uploadObjects);
+      scene.scene.traverse(o=>{if((o.isMesh||o.isPoints)&&!own.has(o))others.push([o,o.layers.mask]);});
+    }
+    function warmup(shadows) {
+      const previousViewport = renderer.getViewport(new THREE.Vector4());
+      const previousScissor=renderer.getScissor(new THREE.Vector4()), scissorTest=renderer.getScissorTest();
+      const previousShadows = renderer.shadowMap.enabled, visible=target.visible;
+      try {
+        target.visible=true;
+        // Canvas já visível: prepara buffers sem limpar/desenhar sobre o rio.
+        if(background) {
+          renderer.setScissor(0,0,0,0);renderer.setScissorTest(true);
+          for(const [o] of others)o.layers.mask=0;
+        }
+        renderer.setViewport(0,0,16,16);
+        renderer.shadowMap.enabled=scene.hasShadows;
+        renderer.shadowMap.needsUpdate=shadows;
+        if(shadows)scene.scene.traverse(o=>{if(o.isLight&&o.shadow)o.shadow.needsUpdate=true;});
+        renderer.render(scene.scene,scene.camera);
+      } finally {
+        target.visible=visible;
+        for(const [o,mask] of others)o.layers.mask=mask;
+        renderer.setViewport(previousViewport);
+        renderer.setScissor(previousScissor);renderer.setScissorTest(scissorTest);
+        renderer.shadowMap.enabled=previousShadows;
+      }
+    }
+    const masks=uploadObjects.map(o=>o.layers.mask);
     try {
-      // Um único warmup envia também o interior, mesmo distante/oculto na chegada.
       for (const object of uploadObjects) object.frustumCulled = false;
-      renderer.setViewport(0, 0, 16, 16);
-      renderer.shadowMap.enabled = scene.hasShadows;
-      renderer.shadowMap.needsUpdate = scene.hasShadows;
-      renderer.render(scene.scene, scene.camera);
+      if(background) {
+        for(const object of uploadObjects)object.layers.mask=0;
+        // Os detalhes entram em pequenos lotes enquanto o rio já está animado.
+        for(let i=0;i<uploadObjects.length;i+=4) {
+          await nextFrame();
+          if(failed)return null;
+          for(let j=i;j<Math.min(i+4,uploadObjects.length);j++)uploadObjects[j].layers.mask=masks[j];
+          warmup(false);
+          for(let j=i;j<Math.min(i+4,uploadObjects.length);j++)uploadObjects[j].layers.mask=0;
+        }
+        uploadObjects.forEach((o,i)=>{o.layers.mask=masks[i];});
+      }
+      warmup(scene.hasShadows);
       scene.shadowsReady = true;
     } finally {
-      for (const object of uploadObjects) object.frustumCulled = true;
-      renderer.setViewport(previousViewport);
-      renderer.shadowMap.enabled = previousShadows;
+      uploadObjects.forEach((o,i)=>{o.frustumCulled=true;o.layers.mask=masks[i];});
     }
     if (shaderError) throw new Error('Falha ao preparar o primeiro quadro');
     // O viewport pode ter mudado durante os awaits.
@@ -233,7 +276,7 @@ export async function initStage({ onCovado } = {}) {
 
   function adaptDpr(now, interval) {
     // Loading, primeira utilização, resize e retomada não contam como GPU lenta.
-    if (riverLoading || now < adaptAfter || interval <= 0 || interval > 250) return;
+    if (riverLoading || !detailsReady || now < adaptAfter || interval <= 0 || interval > 250) return;
     if (warmFrames > 0) { warmFrames--; return; }
     averageMs += (interval - averageMs) * 0.05;
     slowMs = averageMs > 24 ? slowMs + interval : 0;
@@ -272,7 +315,8 @@ export async function initStage({ onCovado } = {}) {
       const targetPoco = clamp01((scroll - layout.pocoTop) / layout.pocoSpan);
       // Um só valor suavizado atravessa a fronteira. Não muda a câmera pelo scroll
       // bruto enquanto a aproximação ainda está terminando, nem reseta a suavização.
-      const targetJourney = targetRio + targetPoco;
+      // Não alcança o pavilhão enquanto seus detalhes ainda estão sendo preparados.
+      const targetJourney = detailsReady ? targetRio + targetPoco : Math.min(targetRio,layout.portaStart*.5);
       // Reduced motion mantém resposta direta ao scroll. Só resize interpola a
       // mudança de layout/lente, sem ligar animações incidentais de água/aves.
       const settled=advanceJourney(navigation,targetJourney,layout.portaStart,layout.width/layout.height,
@@ -384,8 +428,15 @@ export async function initStage({ onCovado } = {}) {
     measureLayout();
     // Os materiais vêm do Blender: não dependem mais de fontes/Canvas 2D.
     if (failed) return null;
-    const scene = await withTimeout(createRiver({ quality }), 30000, 'Tempo esgotado ao carregar rio, nilômetro e guardas');
+    const scene = await withTimeout(createRiver({ quality }), 30000, 'Tempo esgotado ao carregar o rio');
     if (failed) return null;
+    // Links diretos para o interior aguardam o cenário completo por trás do poster.
+    if(scroll>=layout.pocoTop) {
+      const models=await withTimeout(scene.nilometer.loadModels(),30000,'Tempo esgotado ao carregar o nilômetro');
+      if(failed)return null;
+      models.visible=true;
+      detailsReady=true;
+    }
     river = await prepare(scene);
     nilo = river?.nilometer ?? null;
     riverLoading = false;
@@ -393,6 +444,18 @@ export async function initStage({ onCovado } = {}) {
     snap = true;
     resetSampling();
     requestFrame();
+    if(!detailsReady) {
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      if(failed)return null;
+      const models=await withTimeout(nilo.loadModels(),30000,'Tempo esgotado ao carregar o nilômetro');
+      if(failed)return null;
+      await prepare(river,models);
+      if(failed)return null;
+      models.visible=true;
+      detailsReady=true;
+      resetSampling();
+      requestFrame();
+    }
     return { renderer };
   } catch (error) {
     fail(error);

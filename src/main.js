@@ -13,16 +13,17 @@ import { modelUrl } from './scenes/model-url.js';
 if (!new URLSearchParams(location.search).has('sem3d')) {
   for (const name of ['vegetation', 'nilometer', 'guardians']) {
     const preload = document.createElement('link');
-    Object.assign(preload, { rel: 'preload', as: 'fetch', href: modelUrl(name), crossOrigin: 'anonymous' });
+    Object.assign(preload, { rel: 'preload', as: 'fetch', href: modelUrl(name), crossOrigin: 'anonymous', fetchPriority: name==='vegetation'?'high':'low' });
     document.head.append(preload);
   }
 }
 
+const stage = import('./scenes/stage.js');
 const ui = initUI();
 initCookies({ politica: 'politica-de-privacidade/' });
 initCadastro();
 // O 3D vem num pacote separado: o texto e os botões já funcionam enquanto ele baixa.
-import('./scenes/stage.js').then(({ initStage }) => initStage({ onCovado: ui.onCovado })).catch((err) => {
+stage.then(({ initStage }) => initStage({ onCovado: ui.onCovado })).catch((err) => {
   // Se o 3D falhar, o site continua legível com o fundo estático.
   console.warn('[nilo] 3D desativado:', err);
   document.documentElement.classList.add('sem-3d');

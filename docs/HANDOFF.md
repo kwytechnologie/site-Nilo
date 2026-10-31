@@ -1,5 +1,13 @@
 # Passagem de bastão: site do Nilo
 
+## Atualização de 31/10/2026: início progressivo da animação
+
+O HTML já mostra uma imagem do cenário atual, com versões desktop e móvel, antecipada por preload. Isso elimina a sequência gradiente/poster antigo/3D. O poster do poço só é solicitado ao entrar nessa parte. Os novos posters foram capturados da própria cena; modelos, materiais, iluminação e resolução do 3D foram preservados.
+
+O rio inicia depois de preparar a vegetação, enquanto arquitetura e guardas são preparados em segundo plano. A decodificação Meshopt usa um worker; compilação, texturas e buffers são distribuídos entre quadros. O warmup mantém o framebuffer principal e usa scissor vazio para não apagar o rio já visível. A câmera aguarda fora do pavilhão até os detalhes estarem prontos; links diretos ao interior aguardam a cena completa sob o poster.
+
+QA local: desktop completo, reabertura e viewport móvel com CPU 4× passaram; também foi simulado atraso de 4,5 s no modelo do nilômetro para verificar a navegação antes de ele estar pronto. No móvel simulado, primeiro quadro em 2,63 s, detalhes prontos em 4,17 s, p95 de 14 ms nos primeiros dois segundos de animação e nenhuma tarefa longa após a revelação nesse intervalo. São medições locais, não promessa de tempo em rede nem validação em telefone físico. O script registra `initialPreview`, `detailsAt`, `earlyFrames` e `unsafeWarmups`; `NILO_QA_DELAY_MODELS=1` ativa o atraso artificial.
+
 ## Atualização de 31/10/2026: reabertura com consentimento salvo
 
 Foi reproduzida uma reabertura de 5,6 s no Chrome, com todos os modelos em cache: 4,7 s esperando a revalidação do HTML, cerca de 0,9 s preparando o 3D. O HTML usava `no-cache`; agora recebe `public,max-age=60,s-maxage=300,stale-while-revalidate=300`. Pode aparecer uma cópia anterior em uma visita durante a janela de revalidação (até 6 min no navegador); a atualização segue em segundo plano. O deploy continua invalidando o CloudFront e preservando assets antigos.

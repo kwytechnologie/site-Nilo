@@ -60,12 +60,11 @@ export function sampleStairCurve(curve, u, target) {
 }
 
 export async function createNilometer({ quality }) {
-  const [model, guardians] = await Promise.all([loadModel('nilometer'), loadModel('guardians')]);
   const scene=new THREE.Scene();
   scene.name = 'NilometerInterior';
   // A cena raiz do rio fornece fundo/fog; esta Scene é apenas um nó transformado.
   const camera=new THREE.PerspectiveCamera(62,1,.05,6000);
-  scene.add(camera, model, guardians);
+  scene.add(camera);
   function prepareMesh(o) {
     if(!o.isMesh)return;
     o.castShadow=o.receiveShadow=true;
@@ -76,24 +75,31 @@ export async function createNilometer({ quality }) {
       // Preserve the relief calibrated per material in Blender (stone, wood, cloth).
     }
   }
-  model.traverse(prepareMesh);
-  guardians.traverse(prepareMesh);
   function required(parent, name) {
     const node=parent.getObjectByName(name);
     if(!node)throw new Error(`Contrato GLB incompleto: falta ${name}`);
     return node;
   }
-  const doorLeft=required(model,'DoorLeft'), doorRight=required(model,'DoorRight');
-  const guardLeft=required(guardians,'GuardLeft'), guardRight=required(guardians,'GuardRight');
-  const spearLeft=required(guardLeft,'SpearLeft'), spearRight=required(guardRight,'SpearRight');
+  let doorLeft, doorRight, spearLeft, spearRight, rest;
   // SpearLeft/Right giram no ombro com manga, braço, mão e lança; corpo separado.
   // Rest Z importado: -.25/+.25. Deltas +.95/-.95 chegam a +.70/-.70 absolutos.
   const entranceMotion={doorLeft:-1.4,doorRight:1.4,spearLeft:.95,spearRight:-.95};
-  const rest={doorLeft:doorLeft.rotation.y,doorRight:doorRight.rotation.y,
-    spearLeft:spearLeft.rotation.z,spearRight:spearRight.rotation.z};
-  // A sombra do edifício é estática: peças móveis não deixam sombras congeladas.
-  for(const part of [doorLeft,doorRight,guardians])part.traverse(o=>{if(o.isMesh)o.castShadow=false;});
+  async function loadModels() {
+    const [model, guardians] = await Promise.all([loadModel('nilometer'), loadModel('guardians')]);
+    model.traverse(prepareMesh); guardians.traverse(prepareMesh);
+    doorLeft=required(model,'DoorLeft'); doorRight=required(model,'DoorRight');
+    spearLeft=required(required(guardians,'GuardLeft'),'SpearLeft');
+    spearRight=required(required(guardians,'GuardRight'),'SpearRight');
+    rest={doorLeft:doorLeft.rotation.y,doorRight:doorRight.rotation.y,
+      spearLeft:spearLeft.rotation.z,spearRight:spearRight.rotation.z};
+    // Peças móveis não deixam sombras congeladas.
+    for(const part of [doorLeft,doorRight,guardians])part.traverse(o=>{if(o.isMesh)o.castShadow=false;});
+    const models=new THREE.Group();
+    models.add(model,guardians);models.visible=false;scene.add(models);
+    return models;
+  }
   function setEntrance(approach) {
+    if(!rest)return;
     // A abertura fica legível de perto e termina antes de cruzar cada obstáculo.
     const doors=THREE.MathUtils.smootherstep(approach,.65,.87);
     const spears=THREE.MathUtils.smootherstep(approach,.60,.82);
@@ -202,7 +208,7 @@ export async function createNilometer({ quality }) {
   }
   // O aspect acompanha o canvas; o FOV vem da proporção suavizada pelo stage.
   function resize(w,h){camera.aspect=w/h;camera.updateProjectionMatrix();}
-  return {scene,camera,update,resize,setEntrance,setInteriorLight,entranceMotion,
-    get doorAngles(){return {doorLeft:doorLeft.rotation.y,doorRight:doorRight.rotation.y,
-      spearLeft:spearLeft.rotation.z,spearRight:spearRight.rotation.z};}};
+  return {scene,camera,update,resize,setEntrance,setInteriorLight,entranceMotion,loadModels,
+    get doorAngles(){return rest?{doorLeft:doorLeft.rotation.y,doorRight:doorRight.rotation.y,
+      spearLeft:spearLeft.rotation.z,spearRight:spearRight.rotation.z}:null;}};
 }

@@ -17,6 +17,7 @@ const server = createServer(async (req, res) => {
     if (!relative || relative === '/') relative = 'index.html';
     const file = resolve(root, relative.replace(/^\//, ''));
     if (!file.startsWith(root + sep)) { res.writeHead(403).end(); return; }
+    if(process.env.NILO_QA_DELAY_MODELS && /nilometer.*\.glb$/.test(file))await sleep(4500);
     res.setHeader('Content-Type', mime[extname(file)] || 'application/octet-stream');
     res.setHeader('Cache-Control', extname(file)==='.html' ? 'public,max-age=60,s-maxage=300,stale-while-revalidate=300' : file.startsWith(join(root,'assets')+sep) ? 'public,max-age=31536000,immutable' : 'public,max-age=300');
     res.end(await readFile(file));
@@ -52,15 +53,24 @@ try {
   await send('Emulation.setDeviceMetricsOverride',{width:mobile?390:1440,height:mobile?844:900,deviceScaleFactor:mobile?2:1,mobile});
   if(mobile){await send('Emulation.setTouchEmulationEnabled',{enabled:true});await send('Emulation.setCPUThrottlingRate',{rate:4});}
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
-    window.__qa={tasks:[],frames:[],draws:0,triangles:0,last:0,readyAt:0};
+    window.__qa={tasks:[],frames:[],draws:0,triangles:0,last:0,readyAt:0,detailsAt:0,unsafeWarmups:0};
+    addEventListener('DOMContentLoaded',()=>{__qa.initialPreview=document.documentElement.classList.contains('sem-3d')&&getComputedStyle(document.querySelector('.stage__poster--rio')).opacity==='1';});
     new PerformanceObserver(l=>__qa.tasks.push(...l.getEntries().map(e=>({start:e.startTime,duration:e.duration})))).observe({type:'longtask',buffered:true});
     for(const proto of [WebGL2RenderingContext.prototype,WebGLRenderingContext.prototype]) {
+      const clear=proto.clear;
+      proto.clear=function(...args){
+        if(window.__niloDebug?.ready&&!__niloDebug.fallback&&!this.getParameter(this.FRAMEBUFFER_BINDING)) {
+          const v=this.getParameter(this.VIEWPORT),s=this.getParameter(this.SCISSOR_BOX);
+          if(v[2]<=32&&v[3]<=32&&(!this.getParameter(this.SCISSOR_TEST)||s[2]*s[3]>0))__qa.unsafeWarmups++;
+        }
+        return clear.apply(this,args);
+      };
       for(const key of ['drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced']) {
         const original=proto[key]; if(!original)continue;
         proto[key]=function(...a){__qa.draws++;const n=key.includes('Elements')?a[1]:a[2];const instances=key.includes('Instanced')?a.at(-1):1;if(a[0]===4)__qa.triangles+=n/3*instances;return original.apply(this,a);};
       }
     }
-    function sample(t){if(!__qa.readyAt&&window.__niloDebug?.ready&&!__niloDebug.fallback)__qa.readyAt=t;if(__qa.last)__qa.frames.push({ms:t-__qa.last,draws:__qa.draws,triangles:__qa.triangles});__qa.last=t;__qa.draws=0;__qa.triangles=0;requestAnimationFrame(sample)}requestAnimationFrame(sample);
+    function sample(t){if(!__qa.readyAt&&window.__niloDebug?.ready&&!__niloDebug.fallback)__qa.readyAt=t;if(!__qa.detailsAt&&window.__niloDebug?.detailsReady)__qa.detailsAt=t;if(__qa.last)__qa.frames.push({t,ms:t-__qa.last,draws:__qa.draws,triangles:__qa.triangles});__qa.last=t;__qa.draws=0;__qa.triangles=0;requestAnimationFrame(sample)}requestAnimationFrame(sample);
   `});
   const base=remote || `http://127.0.0.1:${server.address().port}/site-Nilo/`;
   async function startupSnapshot() {
@@ -72,6 +82,22 @@ try {
   }
   await send('Page.navigate',{url:base+'?debug3d'});
   let startup=await startupSnapshot();
+  const progressiveChecks=[];
+  if(process.env.NILO_QA_DELAY_MODELS) {
+    await evaluate("document.querySelector('[data-necessarios]')?.click()");
+    await evaluate("scrollTo({top:document.querySelector('#nilometro').offsetTop,behavior:'instant'})");await sleep(250);
+    progressiveChecks.push({name:'river starts before delayed model and holds camera outside',pass:await evaluate('__qa.readyAt>0 && !__niloDebug.detailsReady && __niloDebug.journey<1 && !__niloDebug.fallback')});
+  }
+  async function waitDetails(snapshot) {
+    for(let i=0;i<150;i++) {
+      if(await evaluate('!!__qa.detailsAt || !!window.__niloDebug?.error'))break;
+      await sleep(200);
+    }
+    await sleep(1500);
+    Object.assign(snapshot,await evaluate('({detailsAt:__qa.detailsAt,initialPreview:__qa.initialPreview,unsafeWarmups:__qa.unsafeWarmups,earlyFrames:__qa.frames.filter(f=>f.t>__qa.readyAt && f.t<__qa.readyAt+2000),preparationTasks:__qa.tasks.slice()})'));
+  }
+  await waitDetails(startup);
+  if(process.env.NILO_QA_DELAY_MODELS)await evaluate("scrollTo({top:0,behavior:'instant'})");
   if(process.env.NILO_QA_PROFILE)await writeFile(join(output,'startup.cpuprofile'),JSON.stringify((await send('Profiler.stop')).profile));
   await evaluate("document.querySelector('[data-necessarios]')?.click()");await sleep(350);
   const firstVisit=startup;
@@ -80,6 +106,7 @@ try {
     if(process.env.NILO_QA_PROFILE)await send('Profiler.start');
     await send('Page.navigate',{url:base+'?debug3d'});
     startup=await startupSnapshot();
+    await waitDetails(startup);
     if(process.env.NILO_QA_PROFILE)await writeFile(join(output,'returning.cpuprofile'),JSON.stringify((await send('Profiler.stop')).profile));
   }
   const samples=[];
@@ -101,17 +128,25 @@ try {
     await writeFile(join(output,`${name}.png`),Buffer.from(shot.data,'base64'));
     if(process.env.NILO_QA_CLEAN)await evaluate('__cleanStyle.remove()');
     if (process.env.NILO_QA_POSTERS && ['rio','poco-meio'].includes(name)) {
+      if(name==='rio')await send('Emulation.setDeviceMetricsOverride',{width:mobile?480:1920,height:800,deviceScaleFactor:mobile?2:1,mobile});
+      await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+      await evaluate('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
       await evaluate(`window.__posterStyle=document.createElement('style');__posterStyle.textContent='body > :not(.stage){visibility:hidden!important}.stage__veil{opacity:0!important}';document.head.append(__posterStyle)`);
       const poster=await send('Page.captureScreenshot',{format:'jpeg',quality:87});
       await writeFile(join(output,name==='rio'?'poster-rio.jpg':'poster-poco.jpg'),Buffer.from(poster.data,'base64'));
       await evaluate('__posterStyle.remove()');
+      if(name==='rio')await send('Emulation.setDeviceMetricsOverride',{width:mobile?390:1440,height:mobile?844:900,deviceScaleFactor:mobile?2:1,mobile});
+      await send('Emulation.setEmulatedMedia',{features:[]});
     }
     samples.push({name,...sample});
   }
   const tasks=await evaluate('__qa.tasks');
   const resources=await evaluate(`performance.getEntriesByType('resource').map(e=>({name:e.name.split('/').pop(),bytes:e.transferSize,duration:e.duration,start:e.startTime,responseStart:e.responseStart,responseEnd:e.responseEnd}))`);
-  const runtimeErrors=[...errors], initialBadRequests=[...badRequests], checks=[];
+  const runtimeErrors=[...errors], initialBadRequests=[...badRequests], checks=[...progressiveChecks];
   checks.push({name:'cold start renders 3D',pass:firstVisit.readyAt>0});
+  checks.push({name:'matching preview is visible before 3D',pass:firstVisit.initialPreview===true});
+  checks.push({name:'background warmup preserves visible frame',pass:firstVisit.unsafeWarmups===0&&startup.unsafeWarmups===0});
+  checks.push({name:'nilometer finishes preparation after river starts',pass:firstVisit.detailsAt>=firstVisit.readyAt && firstVisit.detailsAt>0});
   if(process.env.NILO_QA_RETURNING)checks.push({name:'returning visitor renders 3D and skips cookie dialog',pass:startup.readyAt>0&&startup.consentSaved&&startup.cookiesHidden});
   const models=resources.filter(r=>r.name.includes('.glb'));
   const stage=resources.find(r=>r.name.startsWith('stage-'));

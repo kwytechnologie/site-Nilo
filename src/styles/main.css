@@ -56,11 +56,12 @@ p { margin: 0; text-wrap: pretty; }
 .skip:focus { top: 16px; }
 
 /* ── Palco 3D ───────────────────────────────────────────────── */
-.stage { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(180deg, #1d2f5e 0%, #b9744a 55%, #1e4d52 56%, #0b1f2a 100%); }
+.stage { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: #415f71; }
 .stage canvas { width: 100%; height: 100%; display: block; }
-.stage__poster { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity .6s; }
-.stage__poster--rio { background-image: url('/img/poster-rio.jpg'); }
-.stage__poster--poco { background-image: url('/img/poster-poco.jpg'); }
+.stage__poster { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity .2s; }
+.stage__poster--rio { background-image: url('/img/poster-rio-v2.jpg'); }
+@media (max-width: 760px) { .stage__poster--rio { background-image: url('/img/poster-rio-mobile-v2.jpg'); } }
+.no-poco .stage__poster--poco { background-image: url('/img/poster-poco.jpg'); }
 .sem-3d .stage canvas { display: none; }
 .sem-3d .stage__poster--rio { opacity: 1; }
 .sem-3d.no-poco .stage__poster--rio { opacity: 0; }
