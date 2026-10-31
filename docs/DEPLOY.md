@@ -198,3 +198,11 @@ aws cloudformation deploy \
 A conta `ighor-kwytech` tem acesso de escrita ao repositório para publicar o workflow
 e configurar as variáveis. Acompanhe as publicações em
 [GitHub Actions](https://github.com/kwytechnologie/site-Nilo/actions/workflows/deploy.yml).
+
+## Cache de página e modelos 3D
+
+O HTML tem 60 s de cache no navegador, 300 s no CloudFront e até 300 s adicionais de revalidação em segundo plano. Uma página anterior pode aparecer nessa janela; recarregar após a revalidação obtém a atualização. Os assets antigos são preservados para que essa página continue funcionando.
+
+Os GLBs usados pelo site são emitidos pelo Vite como `assets/nilometer-<hash>.glb` e equivalentes, com cache imutável de um ano. O hash muda com o conteúdo, sem manutenção manual de uma revisão. Os arquivos originais em `public/models/` continuam disponíveis para Blender e compatibilidade com versões anteriores.
+
+Referências: [expiração e revalidação no CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html), [assets versionados do Vite](https://vite.dev/guide/assets).

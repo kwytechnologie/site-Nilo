@@ -1,5 +1,13 @@
 # Passagem de bastão: site do Nilo
 
+## Atualização de 31/10/2026: reabertura com consentimento salvo
+
+Foi reproduzida uma reabertura de 5,6 s no Chrome, com todos os modelos em cache: 4,7 s esperando a revalidação do HTML, cerca de 0,9 s preparando o 3D. O HTML usava `no-cache`; agora recebe `public,max-age=60,s-maxage=300,stale-while-revalidate=300`. Pode aparecer uma cópia anterior em uma visita durante a janela de revalidação (até 6 min no navegador); a atualização segue em segundo plano. O deploy continua invalidando o CloudFront e preservando assets antigos.
+
+`model-url.js` usa URLs estáticas reconhecidas pelo Vite. O build emite GLBs com hash em `/assets/`, com o cache imutável de um ano já configurado no deploy. Atualizações de Blender alteram os nomes automaticamente; as fontes e os caminhos dos exports em `public/models/` continuam intactos. O cache anterior desses modelos durava apenas 5 min.
+
+QA: `NILO_QA_RETURNING=1` navega novamente no mesmo perfil depois de carregar tudo e escolher cookies necessários, mede navegação/primeiro quadro e verifica que HTML/modelos não são transferidos de novo. O teste aguarda o 3D ficar pronto, em vez de presumir que uma espera fixa bastou.
+
 ## Atualização de 31/10/2026: primeira abertura
 
 O endereço atual é https://nilo.kwytech.com/, servido pelo fluxo S3/CloudFront existente. As referências a GitHub Pages abaixo são históricas.

@@ -18,6 +18,7 @@ const server = createServer(async (req, res) => {
     const file = resolve(root, relative.replace(/^\//, ''));
     if (!file.startsWith(root + sep)) { res.writeHead(403).end(); return; }
     res.setHeader('Content-Type', mime[extname(file)] || 'application/octet-stream');
+    res.setHeader('Cache-Control', extname(file)==='.html' ? 'public,max-age=60,s-maxage=300,stale-while-revalidate=300' : file.startsWith(join(root,'assets')+sep) ? 'public,max-age=31536000,immutable' : 'public,max-age=300');
     res.end(await readFile(file));
   } catch { res.writeHead(404).end(); }
 });
@@ -62,11 +63,25 @@ try {
     function sample(t){if(!__qa.readyAt&&window.__niloDebug?.ready&&!__niloDebug.fallback)__qa.readyAt=t;if(__qa.last)__qa.frames.push({ms:t-__qa.last,draws:__qa.draws,triangles:__qa.triangles});__qa.last=t;__qa.draws=0;__qa.triangles=0;requestAnimationFrame(sample)}requestAnimationFrame(sample);
   `});
   const base=remote || `http://127.0.0.1:${server.address().port}/site-Nilo/`;
+  async function startupSnapshot() {
+    for(let i=0;i<150;i++) {
+      if(await evaluate('!!window.__qa?.readyAt || !!window.__niloDebug?.error'))break;
+      await sleep(200);
+    }
+    return evaluate('({readyAt:__qa.readyAt,tasks:__qa.tasks.slice(),navigation:performance.getEntriesByType("navigation")[0].toJSON(),consentSaved:!!localStorage.getItem("nilo-consent"),cookiesHidden:document.querySelector(".cookies-raiz").hidden})');
+  }
   await send('Page.navigate',{url:base+'?debug3d'});
-  await sleep(mobile?10000:6500);
+  let startup=await startupSnapshot();
   if(process.env.NILO_QA_PROFILE)await writeFile(join(output,'startup.cpuprofile'),JSON.stringify((await send('Profiler.stop')).profile));
-  const startup=await evaluate('({readyAt:__qa.readyAt,tasks:__qa.tasks.slice()})');
   await evaluate("document.querySelector('[data-necessarios]')?.click()");await sleep(350);
+  const firstVisit=startup;
+  if(process.env.NILO_QA_RETURNING) {
+    await send('Page.navigate',{url:'about:blank'});
+    if(process.env.NILO_QA_PROFILE)await send('Profiler.start');
+    await send('Page.navigate',{url:base+'?debug3d'});
+    startup=await startupSnapshot();
+    if(process.env.NILO_QA_PROFILE)await writeFile(join(output,'returning.cpuprofile'),JSON.stringify((await send('Profiler.stop')).profile));
+  }
   const samples=[];
   const route=process.env.NILO_QA_DEFECTS
     ? [['faixa-a','#nilometro',0],['faixa-b','#nilometro',.02],['patamar-a','#nilometro',.46],['patamar-b','#nilometro',.50],['inicio-escada','#nilometro',.54]]
@@ -96,10 +111,13 @@ try {
   const tasks=await evaluate('__qa.tasks');
   const resources=await evaluate(`performance.getEntriesByType('resource').map(e=>({name:e.name.split('/').pop(),bytes:e.transferSize,duration:e.duration,start:e.startTime,responseStart:e.responseStart,responseEnd:e.responseEnd}))`);
   const runtimeErrors=[...errors], initialBadRequests=[...badRequests], checks=[];
-  checks.push({name:'cold start renders 3D',pass:startup.readyAt>0});
+  checks.push({name:'cold start renders 3D',pass:firstVisit.readyAt>0});
+  if(process.env.NILO_QA_RETURNING)checks.push({name:'returning visitor renders 3D and skips cookie dialog',pass:startup.readyAt>0&&startup.consentSaved&&startup.cookiesHidden});
   const models=resources.filter(r=>r.name.includes('.glb'));
   const stage=resources.find(r=>r.name.startsWith('stage-'));
   checks.push({name:'models download once, before 3D script finishes',pass:models.length===3&&new Set(models.map(r=>r.name)).size===3&&models.every(r=>r.start<stage?.responseEnd)});
+  checks.push({name:'models have content-versioned filenames',pass:models.length===3&&models.every(r=>/^(vegetation|nilometer|guardians)-[\w-]+\.glb$/.test(r.name))});
+  if(process.env.NILO_QA_RETURNING)checks.push({name:'returning visit reuses HTML and models without transfer',pass:startup.navigation.transferSize===0&&models.every(r=>r.bytes===0)});
   if(process.env.NILO_QA_CHECKS) {
     await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
     const seam=[];
@@ -127,11 +145,11 @@ try {
     checks.push({name:'context loss fallback',pass:await evaluate("document.documentElement.classList.contains('sem-3d') && document.documentElement.classList.contains('no-poco')")});
     await send('Page.navigate',{url:base+'?sem3d#perguntas'});await sleep(600);
     checks.push({name:'sem3d fallback',pass:await evaluate("document.documentElement.classList.contains('sem-3d') && document.documentElement.classList.contains('no-poco')")});
-    await send('Network.setBlockedURLs',{urls:['*nilometer.glb*']});
+    await send('Network.setBlockedURLs',{urls:['*nilometer*.glb*']});
     await send('Page.navigate',{url:base+'?debug3d&failed=1#perguntas'});await sleep(3500);
     checks.push({name:'failed model keeps readable poster',pass:await evaluate("__niloDebug.fallback && !__niloDebug.loading && !!__niloDebug.error && getComputedStyle(document.querySelector('main')).visibility!=='hidden'")});
   }
-  const report={label,mode,cpuThrottle:mobile?4:1,startup,samples,longTasks:tasks,errors:runtimeErrors,badRequests:initialBadRequests,resources,checks};
+  const report={label,mode,cpuThrottle:mobile?4:1,firstVisit,startup,samples,longTasks:tasks,errors:runtimeErrors,badRequests:initialBadRequests,resources,checks};
   await writeFile(join(output,'report.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify({label,mode,samples,longTasks:tasks.length,errors:runtimeErrors,badRequests:initialBadRequests,checks},null,2));
   if(runtimeErrors.length || initialBadRequests.length || samples.some(s=>s.overflow || s.fallback?.includes('sem-3d')) || checks.some(c=>!c.pass))process.exitCode=1;
