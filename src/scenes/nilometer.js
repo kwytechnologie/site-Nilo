@@ -71,9 +71,9 @@ export async function createNilometer({ quality }) {
     o.castShadow=o.receiveShadow=true;
     const materials=Array.isArray(o.material)?o.material:[o.material];
     for(const material of materials) {
-      material.shadowSide=THREE.BackSide;
+      material.shadowSide=THREE.FrontSide;
       if(material.map)material.map.anisotropy=quality.mobile?2:4;
-      if(material.normalMap)material.normalScale.setScalar(.65);
+      // Preserve the relief calibrated per material in Blender (stone, wood, cloth).
     }
   }
   model.traverse(prepareMesh);
@@ -106,24 +106,25 @@ export async function createNilometer({ quality }) {
   // Uma sombra estática, luz difusa azulada e luz refletida da água.
   const ambient=new THREE.HemisphereLight('#d1e1e2','#6d7568',.2);
   scene.add(ambient);
-  const sun=new THREE.SpotLight('#ffdfb0',1250,40,.57,.72,1.8);
+  const sun=new THREE.SpotLight('#fff0d9',300,32,.65,.85,2);
   sun.position.set(-1.5,6,1.3);sun.target.position.set(.7,-8,0);
   sun.castShadow=quality.shadows;
-  sun.shadow.mapSize.set(1024,1024);sun.shadow.bias=-.001;sun.shadow.normalBias=.07;
+  sun.shadow.mapSize.set(1024,1024);sun.shadow.bias=-.0004;sun.shadow.normalBias=.04;
+  sun.shadow.camera.near=.5;sun.shadow.camera.far=32;
   sun.shadow.autoUpdate=false;sun.shadow.needsUpdate=true;
   scene.add(sun,sun.target);
-  const reflected=new THREE.PointLight('#7faeab',27,18,1.6);
+  const reflected=new THREE.PointLight('#91ada5',12,18,2);
   reflected.position.set(.2,-8.4,.5);scene.add(reflected);
-  const lantern=new THREE.PointLight('#ffc079',15,12,1.6);
+  const lantern=new THREE.PointLight('#ffd09b',5,12,2);
   lantern.position.set(-2.3,-2.1,.9);scene.add(lantern);
   // Luz rebatida alcança a face interna de PaintedDome (ápice Y=9.8).
   // Sem shadow map, inclusive no móvel; mantém a exposição global constante.
-  const domeFill=new THREE.PointLight('#f5e4cf',12,5,2);
-  domeFill.name='DomeFill';domeFill.position.set(0,6,0);domeFill.castShadow=false;
+  const domeFill=new THREE.PointLight('#f5e4cf',12,9,2);
+  domeFill.name='DomeFill';domeFill.position.set(0,5.8,.8);domeFill.castShadow=false;
   scene.add(domeFill);
   function setInteriorLight(blend) {
-    ambient.intensity=THREE.MathUtils.lerp(.2,1.35,blend);
-    domeFill.intensity=THREE.MathUtils.lerp(12,24,blend);
+    ambient.intensity=THREE.MathUtils.lerp(.2,1.25,blend);
+    domeFill.intensity=THREE.MathUtils.lerp(12,35,blend);
   }
 
   const waterMat=createWaterMaterial({

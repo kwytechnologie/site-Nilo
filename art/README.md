@@ -4,6 +4,10 @@
 
 Correção de 30/10/2026: patamar inicial restaurado e frisos separados 10 mm das bases; o Meshopt arredondava a folga anterior de 2 mm para zero. Iluminação, texturas e percurso preservados. `node scripts/check-nilometer.mjs` verifica o GLB já descomprimido (quatro frisos e nove pontos do patamar). `NILO_QA_DEFECTS=1` no verificador de navegador captura os ângulos de entrada e início da escada. No QA Blender, a tolerância de contato da arquitetura é 12 mm para aceitar esse afastamento intencional dos decalques; a verificação de sobreposição continua em 1 mm. Permanecem os avisos de UV repetida, junções e faces internas documentados na revisão anterior.
 
+Revisão de materiais e luz de 31/10/2026: luz direta reduzida para preservar os detalhes claros da escada, preenchimento da galeria/cúpula e luz da porta com transição contínua. A sombra estática usa as faces frontais, evitando os padrões indevidos causados pelas faces traseiras dos nichos. Arenito e cedro preservam suas intensidades próprias de relevo; calcário reutiliza o mapa de rugosidade da pedra; pintura da cúpula mais fosca. O arquivo editável e o gerador incluem os materiais e a luz de prévia, que não é idêntica ao renderizador web.
+
+Validação: geometria comprimida idêntica à versão aprovada; regressão do friso/patamar e QA Blender aprovados. GLB: 804.812 bytes (+80), mesmas 10 imagens e 11 materiais; nenhuma dependência, efeito de pós-processamento ou luz adicional. A cena web mantém 16 texturas; descida: 15 chamadas / 8.334 triângulos. Comparação visual desktop/móvel emulado e 10 verificações funcionais aprovadas; ajustes finais de preenchimento e sombra conferidos nos ângulos afetados. Celular físico e uma iluminação global pré-calculada não fazem parte desta revisão.
+
 Abra `nilo.blend` no Blender 5.2 ou mais recente. O arquivo inclui as texturas.
 
 - **Nilo • atelier**: poço, escadas, coluna octogonal, divisões em côvados, nichos, capitel, pavilhão e iluminação de revisão. Numpad 0 alterna a vista da câmera; botão do meio orbita.

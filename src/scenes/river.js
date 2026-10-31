@@ -263,9 +263,9 @@ export async function createRiver({ quality }) {
   sky.frustumCulled = false;
   scene.add(sky);
 
-  const ambient = new THREE.HemisphereLight('#c8e1ef', '#4f5134', 1.55);
+  const ambient = new THREE.HemisphereLight('#c8e1ef', '#4f5134', 1.15);
   scene.add(ambient);
-  const sun = new THREE.DirectionalLight('#ffe0ac', 2.4);
+  const sun = new THREE.DirectionalLight('#ffe6c2', 2.1);
   sun.position.copy(SUN_DIR).multiplyScalar(500);
   scene.add(sun);
 
@@ -434,7 +434,7 @@ export async function createRiver({ quality }) {
   island.position.set(DOOR.x, 0, DOOR.z - 120);
   scene.add(island);
   // luz quente na porta, para o olhar achar o nilômetro
-  const doorLight = new THREE.PointLight('#ffc98a', 55, 30, 1.6);
+  const doorLight = new THREE.PointLight('#ffd5a3', 12, 18, 2);
   doorLight.position.set(DOOR.x, 3, DOOR.z + 4);
   scene.add(doorLight);
   // cais de pedra na frente da porta
@@ -506,8 +506,9 @@ export async function createRiver({ quality }) {
     sky.position.copy(eyeWorld);
     // Mesmos tipos/quantidades de luz e fog, sem novas variantes de shader na entrada.
     const interiorBlend=THREE.MathUtils.smootherstep(approach,.75,1);
-    ambient.intensity=THREE.MathUtils.lerp(1.55,.10,interiorBlend);
-    sun.intensity=THREE.MathUtils.lerp(2.4,.08,interiorBlend);
+    ambient.intensity=THREE.MathUtils.lerp(1.15,.10,interiorBlend);
+    sun.intensity=THREE.MathUtils.lerp(2.1,.08,interiorBlend);
+    doorLight.intensity=12*(1-interiorBlend);
     nilometer.setInteriorLight(interiorBlend);
     scene.fog.color.copy(exteriorFog).lerp(interiorFog,interiorBlend);
     scene.fog.near=THREE.MathUtils.lerp(70,12,interiorBlend);

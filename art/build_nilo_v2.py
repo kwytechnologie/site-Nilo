@@ -37,7 +37,7 @@ def material(name, tone, rough=.9, metal=0, texture=False):
             tex.image=bpy.data.images.load(ROOT+'/art/textures/sandstone_'+key+'.jpg',check_existing=True)
             if key!='Diffuse': tex.image.colorspace_settings.name='Non-Color'
             if key=='nor_gl':
-                normal=m.node_tree.nodes.new('ShaderNodeNormalMap');normal.inputs['Strength'].default_value=.58
+                normal=m.node_tree.nodes.new('ShaderNodeNormalMap');normal.inputs['Strength'].default_value=.32
                 m.node_tree.links.new(tex.outputs['Color'],normal.inputs['Color'])
                 m.node_tree.links.new(normal.outputs['Normal'],bs.inputs['Normal'])
             else:m.node_tree.links.new(tex.outputs['Color'],bs.inputs[target])
@@ -49,7 +49,12 @@ def material(name, tone, rough=.9, metal=0, texture=False):
     materials.append(m);return len(materials)-1
 
 STONE=material('Arenito • Poly Haven CC0','#c8b28e',texture=True)
-MARBLE=material('Calcário claro • coluna','#d6d0b8',.5)
+MARBLE=material('Calcário claro • coluna','#beb8aa',.82)
+# Reuse stone roughness for honed limestone without adding a texture image.
+limestone=materials[MARBLE];limestone_bs=next(n for n in limestone.node_tree.nodes if n.type=='BSDF_PRINCIPLED')
+limestone_rough=limestone.node_tree.nodes.new('ShaderNodeTexImage')
+limestone_rough.image=bpy.data.images.get('sandstone_Rough.jpg')
+limestone.node_tree.links.new(limestone_rough.outputs['Color'],limestone_bs.inputs['Roughness'])
 WET=material('Pedra úmida • nível das cheias','#506454',.68)
 CARVE=material('Incisões e juntas','#5a5545',.94)
 WOOD=material('Cedro envelhecido','#5d4129',.84)
@@ -345,7 +350,7 @@ def image_material(name,file,rough=.85):
     m.node_tree.links.new(tex.outputs['Color'],bs.inputs['Base Color'])
     return idx
 
-PAINT=image_material('Pintura floral • Nilo original','dome.png',.82)
+PAINT=image_material('Pintura floral • Nilo original','dome.png',.92)
 UPPER=image_material('MEDIR PARA NÃO FALTAR','inscription-upper.png')
 LOWER=image_material('QUEM MEDE NÃO FICA SEM','inscription-lower.png')
 FRIEZE=image_material('Estuque vegetal • Nilo','frieze.png')
@@ -355,7 +360,7 @@ for file,target in [('wood-color.png','Base Color'),('wood-rough.png','Roughness
     node=wood.node_tree.nodes.new('ShaderNodeTexImage');node.image=bpy.data.images.load(ROOT+'/art/textures/'+file,check_existing=True)
     if target!='Base Color':node.image.colorspace_settings.name='Non-Color'
     if target=='Normal':
-        bump=wood.node_tree.nodes.new('ShaderNodeNormalMap');bump.inputs['Strength'].default_value=.35
+        bump=wood.node_tree.nodes.new('ShaderNodeNormalMap');bump.inputs['Strength'].default_value=.18
         wood.node_tree.links.new(node.outputs['Color'],bump.inputs['Color']);wood.node_tree.links.new(bump.outputs['Normal'],bs.inputs['Normal'])
     else:wood.node_tree.links.new(node.outputs['Color'],bs.inputs[target])
 
@@ -451,7 +456,7 @@ for frame,pos,target in [(1,(0,1.62,13),(0,2,4.5)),(100,(0,1.62,3.8),(0,1.5,0)),
     cam.location=xyz(pos);cam.rotation_euler=(Vector(xyz(target))-cam.location).to_track_quat('-Z','Y').to_euler();cam.keyframe_insert(data_path='location',frame=frame);cam.keyframe_insert(data_path='rotation_euler',frame=frame)
 world=bpy.data.worlds.new('Luz do Nilo • revisão');world.use_nodes=True;scene.world=world
 bg=next(n for n in world.node_tree.nodes if n.type=='BACKGROUND');bg.inputs[0].default_value=(.34,.40,.46,1);bg.inputs[1].default_value=.45
-for name,pos,target,energy,size,tone in [('Luz da entrada',(0,4.8,9),(0,1,2),1000,5,'#ffe1b4'),('Luz do tambor',(1,6.5,0),(0,-6,0),1700,4,'#fff0d0'),('Rebatimento do poço',(0,-6,0),(0,-1,0),95,3,'#9ab9ac'),('Luz da cúpula',(0,5.8,0),(0,9,0),500,3,'#ffdfb0')]:
+for name,pos,target,energy,size,tone in [('Luz da entrada',(0,4.8,9),(0,1,2),450,5,'#ffe1b4'),('Luz do tambor',(1,6.5,0),(0,-6,0),650,5,'#fff0d0'),('Rebatimento do poço',(0,-6,0),(0,-1,0),55,3,'#9ab9ac'),('Luz da cúpula',(0,5.8,0),(0,9,0),500,3,'#ffdfb0')]:
     data=bpy.data.lights.new(name,'AREA');data.energy=energy;data.shape='DISK';data.size=size;data.color=color(tone)[:3]
     ob=bpy.data.objects.new(name,data);scene.collection.objects.link(ob);ob.location=xyz(pos);ob.rotation_euler=(Vector(xyz(target))-ob.location).to_track_quat('-Z','Y').to_euler()
 scene.render.engine='BLENDER_EEVEE';scene.render.resolution_x=1440;scene.render.resolution_y=1000;scene.render.resolution_percentage=75
