@@ -53,10 +53,12 @@ try {
   await send('Emulation.setDeviceMetricsOverride',{width:mobile?390:1440,height:mobile?844:900,deviceScaleFactor:mobile?2:1,mobile});
   if(mobile){await send('Emulation.setTouchEmulationEnabled',{enabled:true});await send('Emulation.setCPUThrottlingRate',{rate:4});}
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
-    window.__qa={tasks:[],frames:[],draws:0,triangles:0,last:0,readyAt:0,detailsAt:0,unsafeWarmups:0};
+    window.__qa={tasks:[],frames:[],draws:0,triangles:0,last:0,readyAt:0,detailsAt:0,unsafeWarmups:0,compiles:[]};
     addEventListener('DOMContentLoaded',()=>{__qa.initialPreview=document.documentElement.classList.contains('sem-3d')&&getComputedStyle(document.querySelector('.stage__poster--rio')).opacity==='1';});
     new PerformanceObserver(l=>__qa.tasks.push(...l.getEntries().map(e=>({start:e.startTime,duration:e.duration})))).observe({type:'longtask',buffered:true});
     for(const proto of [WebGL2RenderingContext.prototype,WebGLRenderingContext.prototype]) {
+      const compile=proto.compileShader;
+      proto.compileShader=function(...args){__qa.compiles.push(performance.now());return compile.apply(this,args);};
       const clear=proto.clear;
       proto.clear=function(...args){
         if(window.__niloDebug?.ready&&!__niloDebug.fallback&&!this.getParameter(this.FRAMEBUFFER_BINDING)) {
@@ -70,7 +72,7 @@ try {
         proto[key]=function(...a){__qa.draws++;const n=key.includes('Elements')?a[1]:a[2];const instances=key.includes('Instanced')?a.at(-1):1;if(a[0]===4)__qa.triangles+=n/3*instances;return original.apply(this,a);};
       }
     }
-    function sample(t){if(!__qa.readyAt&&window.__niloDebug?.ready&&!__niloDebug.fallback)__qa.readyAt=t;if(!__qa.detailsAt&&window.__niloDebug?.detailsReady)__qa.detailsAt=t;if(__qa.last)__qa.frames.push({t,ms:t-__qa.last,draws:__qa.draws,triangles:__qa.triangles});__qa.last=t;__qa.draws=0;__qa.triangles=0;requestAnimationFrame(sample)}requestAnimationFrame(sample);
+    function sample(t){if(!__qa.readyAt&&window.__niloDebug?.ready&&!__niloDebug.fallback)__qa.readyAt=t;if(!__qa.detailsAt&&window.__niloDebug?.detailsReady)__qa.detailsAt=t;if(__qa.last)__qa.frames.push({t,ms:t-__qa.last,draws:__qa.draws,triangles:__qa.triangles,dpr:window.__niloDebug?.dpr,journey:window.__niloDebug?.journey});__qa.last=t;__qa.draws=0;__qa.triangles=0;requestAnimationFrame(sample)}requestAnimationFrame(sample);
   `});
   const base=remote || `http://127.0.0.1:${server.address().port}/site-Nilo/`;
   async function startupSnapshot() {
@@ -96,9 +98,24 @@ try {
     await sleep(1500);
     Object.assign(snapshot,await evaluate('({detailsAt:__qa.detailsAt,initialPreview:__qa.initialPreview,unsafeWarmups:__qa.unsafeWarmups,earlyFrames:__qa.frames.filter(f=>f.t>__qa.readyAt && f.t<__qa.readyAt+2000),preparationTasks:__qa.tasks.slice()})'));
   }
+  async function traverse(snapshot) {
+    if(!process.env.NILO_QA_TRAVERSE)return;
+    await evaluate("document.querySelector('[data-necessarios]')?.click()");
+    // Mede durante o movimento, antes que visitas anteriores aqueçam o interior.
+    snapshot.traversal=await evaluate(`new Promise(resolve=>{
+      const door=document.querySelector('[data-porta]'),well=document.querySelector('#nilometro');
+      const start=door.getBoundingClientRect().top+scrollY,end=well.offsetTop+(well.offsetHeight-innerHeight)*.72;
+      const began=performance.now();
+      function step(now){const p=Math.min(1,(now-began)/8000);scrollTo({top:start+(end-start)*p,behavior:'instant'});
+        if(p<1)requestAnimationFrame(step);else setTimeout(()=>resolve({frames:__qa.frames.filter(f=>f.t>=began),tasks:__qa.tasks.filter(t=>t.start>=began),compiles:__qa.compiles.filter(t=>t>=began),fallback:__niloDebug.fallback,journey:__niloDebug.journey}),350);}
+      requestAnimationFrame(step);
+    })`);
+    await evaluate("scrollTo({top:0,behavior:'instant'})");await sleep(500);
+  }
   await waitDetails(startup);
   if(process.env.NILO_QA_DELAY_MODELS)await evaluate("scrollTo({top:0,behavior:'instant'})");
   if(process.env.NILO_QA_PROFILE)await writeFile(join(output,'startup.cpuprofile'),JSON.stringify((await send('Profiler.stop')).profile));
+  await traverse(startup);
   await evaluate("document.querySelector('[data-necessarios]')?.click()");await sleep(350);
   const firstVisit=startup;
   if(process.env.NILO_QA_RETURNING) {
@@ -108,6 +125,7 @@ try {
     startup=await startupSnapshot();
     await waitDetails(startup);
     if(process.env.NILO_QA_PROFILE)await writeFile(join(output,'returning.cpuprofile'),JSON.stringify((await send('Profiler.stop')).profile));
+    await traverse(startup);
   }
   const samples=[];
   const route=process.env.NILO_QA_DEFECTS
@@ -143,6 +161,7 @@ try {
   const tasks=await evaluate('__qa.tasks');
   const resources=await evaluate(`performance.getEntriesByType('resource').map(e=>({name:e.name.split('/').pop(),bytes:e.transferSize,duration:e.duration,start:e.startTime,responseStart:e.responseStart,responseEnd:e.responseEnd}))`);
   const runtimeErrors=[...errors], initialBadRequests=[...badRequests], checks=[...progressiveChecks];
+  if(process.env.NILO_QA_TRAVERSE)for(const [name,s] of [['cold',firstVisit],['cached',startup]])checks.push({name:name+' traversal reaches stairs without fallback or shader compilation',pass:s.traversal.journey>1.65&&!s.traversal.fallback&&s.traversal.compiles.length===0});
   checks.push({name:'cold start renders 3D',pass:firstVisit.readyAt>0});
   checks.push({name:'matching preview is visible before 3D',pass:firstVisit.initialPreview===true});
   checks.push({name:'background warmup preserves visible frame',pass:firstVisit.unsafeWarmups===0&&startup.unsafeWarmups===0});
