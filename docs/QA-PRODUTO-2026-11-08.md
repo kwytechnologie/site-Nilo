@@ -9,6 +9,11 @@ Esta é uma validação física relatada pelo usuário, sem medição instrument
 Ela confirma a seção Produto publicada e substitui a pendência de teste físico daquela versão.
 Os ajustes de enquadramento descritos abaixo são posteriores a essa confirmação.
 
+Após a publicação de `e0b15a9`, o usuário testou novamente no iPhone e confirmou:
+**“os menus estão bem centralizados e continua fluido.”** Essa segunda validação física
+confirma também o enquadramento dos menus. As mudanças de fundo das imagens e o efeito
+magnético nos botões de desktop foram pedidos depois dela.
+
 ## Entrega
 
 A seção `#produto` fica entre O problema e Como funciona. O menu principal, o menu móvel
@@ -111,6 +116,41 @@ Comparação de altura do conteúdo, não do segmento de rolagem da animação:
 | Como funciona no celular | 827 px | 550 px | 390 × 664 |
 | WhatsApp no celular | 856 px | 554 px | 390 × 664 |
 | Perguntas no celular, fechadas | 695 px | 542 px | 390 × 664 |
+
+## Fundo branco e botões magnéticos
+
+Atualização solicitada após a segunda confirmação do usuário no iPhone:
+
+- Todos os renders, incluindo os quatro pés, foram exportados novamente das cenas originais
+  do Blender, com fundo branco. Geometria, orientação, câmera, adesivo, quatro pés e LED
+  preservados. As cenas antigas continuam salvas separadamente.
+- O fundo branco da imagem continua no retângulo branco da interface. `object-fit: contain`
+  mantém o enquadramento completo, sem esticar ou cortar o produto, em qualquer proporção
+  do retângulo. As sombras de contato continuam presentes.
+- O efeito magnético só funciona com mouse, em largura acima de 760 px e sem preferência
+  por movimento reduzido. Deslocamento limitado a 8 px na horizontal e 5 px na vertical,
+  com retorno ao sair, perder foco ou cancelar o ponteiro. O hover também realça o contorno.
+- Nenhum loop de animação ou dependência nova. Teclado, toque, seleção dos detalhes e
+  movimento reduzido mantidos. O efeito não muda a posição dos textos nem o tamanho da seção.
+
+Tamanhos atuais em bytes, mantendo WebP com qualidade 88 e carregamento adiado:
+
+| Render | 640 px | 1280 px |
+|---|---:|---:|
+| Perspectiva | 5.742 | 14.526 |
+| Quatro pés, fundo branco | 8.022 | 17.774 |
+| Frente | 3.512 | 8.392 |
+| LED | 6.988 | 16.022 |
+
+As quatro versões maiores somam **56.714 bytes**, contra 59.890 bytes antes.
+`scripts/prepare-product-images.py` compõe o fundo branco na exportação das imagens com alpha;
+somente os WebPs entram no repositório público. O projeto Blender e os PNGs ficam locais.
+O teste `scripts/check-product.mjs` também confere o deslocamento limitado do magnetismo,
+desativação com movimento reduzido/toque, fundo branco e enquadramento sem recorte.
+Evidências desta etapa em `.qa/product-white/`.
+Build, dois testes de publicação e teste do Produto aprovados em Chrome e WebKit
+(visitas fria/com cache). Os quatro detalhes permanecem acessíveis; a travessia do
+nilômetro completou sem tela preta ou fallback. Capturas desktop/móvel revisadas.
 
 ## Reproduzir
 

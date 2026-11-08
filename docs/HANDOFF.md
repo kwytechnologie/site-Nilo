@@ -1,5 +1,12 @@
 # Passagem de bastão: site do Nilo
 
+## Nova confirmação no iPhone
+
+O usuário aprovou `e0b15a9` no aparelho: menus bem centralizados e site ainda fluido.
+Depois pediu magnetismo ao passar o mouse nos botões sobre a imagem do Produto e fundo
+branco contínuo em todas as fotos, incluindo a dos quatro pés. Preservar o retângulo,
+todos os detalhes e as proporções do produto, sem cortar ou esticar as imagens.
+
 ## Validação e enquadramento em 08/11/2026
 
 Usuário confirmou a seção Produto de `5c71d6f` no iPhone: “ficou bom, está fluido”.

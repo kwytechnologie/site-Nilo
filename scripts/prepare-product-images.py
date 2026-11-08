@@ -1,4 +1,4 @@
-"""Resize the approved Blender renders for the product section. Requires Pillow."""
+"""Export Blender renders on white, matching the responsive product stage. Requires Pillow."""
 import sys
 from pathlib import Path
 from PIL import Image
@@ -15,8 +15,11 @@ assert all((source / name).is_file() for name in renders.values()), 'Missing app
 target.mkdir(parents=True, exist_ok=True)
 for name, original in renders.items():
     with Image.open(source / original) as image:
+        white = Image.new('RGBA', image.size, 'white')
+        white.alpha_composite(image.convert('RGBA'))
+        image = white.convert('RGB')
         for width in (640, 1280):
-            resized = image.convert('RGB').resize((width, round(image.height * width / image.width)), Image.Resampling.LANCZOS)
+            resized = image.resize((width, round(image.height * width / image.width)), Image.Resampling.LANCZOS)
             path = target / f'{name}-{width}.webp'
             resized.save(path, 'WEBP', quality=88, method=6)
             with Image.open(path) as check:

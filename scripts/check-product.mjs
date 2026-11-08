@@ -34,6 +34,27 @@ for (const mobile of [false, true]) {
       await page.waitForFunction(() => location.hash === '#produto' && document.getElementById('produto').classList.contains('is-dentro'));
       await page.waitForTimeout(mobile ? 900 : 1800);
       assert.match(await page.locator('.produto__cabecalho').innerText(), /bebedouro inteiro/);
+      const button = page.locator('#produto-tab-led');
+      if (!mobile) {
+        const box = await button.boundingBox();
+        await page.mouse.move(0, 0);
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.move(box.x + box.width * .8, box.y + box.height * .3);
+        await page.waitForTimeout(250);
+        const pull = await button.evaluate(e => new DOMMatrix(getComputedStyle(e).transform).m41);
+        assert.ok(pull > 1 && pull <= 8, `Magnet movement must be bounded: ${pull}`);
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.waitForTimeout(50);
+        assert.equal(await button.evaluate(e => getComputedStyle(e).transform), 'none');
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(250);
+        assert.equal(await button.evaluate(e => e.style.getPropertyValue('--pull-x')), '');
+      } else {
+        await button.dispatchEvent('pointerenter', { pointerType: 'touch', clientX: 100, clientY: 100 });
+        await button.dispatchEvent('pointermove', { pointerType: 'touch', clientX: 110, clientY: 100 });
+        assert.equal(await button.evaluate(e => e.style.getPropertyValue('--pull-x')), '');
+      }
       const heights = [];
       for (const detail of ['geral', 'led', 'pes', 'frente']) {
         await page.locator(`#produto-tab-${detail}`).click();
@@ -45,6 +66,8 @@ for (const mobile of [false, true]) {
         assert.equal(await page.locator('#produto [role="tabpanel"]:visible').count(), 1);
         assert.equal(await page.locator(`#produto-tab-${detail}`).getAttribute('aria-selected'), 'true');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        assert.equal(await page.locator(`#produto-${detail} .produto__foto`).evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(255, 255, 255)');
+        assert.equal(await page.locator(`#produto-${detail} img`).evaluate(e => getComputedStyle(e).objectFit), 'contain');
         heights.push(await page.locator('#produto').evaluate(e => e.offsetHeight));
         if (visit === 'cold') await page.locator('#produto').screenshot({ path: join(output, `${label}-${detail}.png`) });
       }
