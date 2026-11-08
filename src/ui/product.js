@@ -13,6 +13,8 @@ export function initProduct() {
     product.dataset.detail = tab.dataset.detail;
   }
 
+  if (matchMedia('(min-width: 761px)').matches) select(tabs[1]);
+
   for (const [index, tab] of tabs.entries()) {
     tab.addEventListener('click', () => select(tab));
     tab.addEventListener('keydown', (event) => {

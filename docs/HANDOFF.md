@@ -1,5 +1,15 @@
 # Passagem de bastão: site do Nilo
 
+## Validação e enquadramento em 08/11/2026
+
+Usuário confirmou a seção Produto de `5c71d6f` no iPhone: “ficou bom, está fluido”.
+Safari informado anteriormente; modelo não informado. Registro em `docs/QA-PRODUTO-2026-11-08.md`.
+Depois dessa validação, pediu centralização dos destinos do menu e conteúdo mais compacto:
+Produto no desktop/celular e cartões extensos no celular. O Produto móvel mostra uma imagem
+por vez, com quatro opções (Plataforma, LED, pés e frente), mantendo todos os detalhes.
+Teste de enquadramento: `scripts/check-navigation.mjs`. Textos ampliados e FAQ aberta podem
+rolar naturalmente; não impor corte ou altura fixa para forçar uma tela.
+
 ## Atualização de 08/11/2026: seção Produto
 
 O usuário aprovou os renders de estúdio e o close do LED e autorizou a seção Produto.

@@ -72,10 +72,10 @@ p { margin: 0; text-wrap: pretty; }
 .nav {
   position: fixed; inset: 0 0 auto; z-index: 20;
   display: flex; align-items: center; gap: 28px;
-  padding: 14px var(--gutter);
-  transition: background .4s var(--ease), box-shadow .4s var(--ease), padding .4s var(--ease);
+  padding: 10px var(--gutter);
+  transition: background .4s var(--ease), box-shadow .4s var(--ease);
 }
-.nav.is-solida { background: rgb(11 31 42 / 0.72); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 1px 0 var(--linho-15); padding-block: 10px; }
+.nav.is-solida { background: rgb(11 31 42 / 0.72); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 1px 0 var(--linho-15); }
 .nav__logo img { height: 40px; width: auto; }
 .nav__links { display: flex; gap: 4px; margin-left: auto; font-size: .95rem; }
 .nav__links a { position: relative; padding: 8px 12px; border-radius: 999px; text-decoration: none; color: var(--linho-70); transition: color .2s ease, background-color .2s ease; --glow-cor: rgb(217 164 65 / 0.28); --glow-tam: 90px; }
@@ -326,7 +326,29 @@ main { position: relative; z-index: 1; }
   body { font-size: 1rem; }
   .parada, .inscricao { padding: 96px 16px; min-height: 105vh; justify-content: center; }
   .parada--hero { padding-bottom: 88px; }
-  .placa { padding: 26px 22px; }
+  .placa { padding: 24px 20px; }
+  .placa .eyebrow { margin-bottom: 12px; }
+  .placa h2 { margin-bottom: 14px; }
+  .passos { gap: 14px; margin-top: 18px; }
+  .passos li { position: relative; padding-left: 30px; }
+  .passo__num { position: absolute; left: 0; top: 3px; height: 22px; gap: 3px; margin: 0; }
+  .passo__num i { width: 4px; }
+  .passos h3 { font-size: 1.15rem; }
+  .passos p { font-size: .9375rem; line-height: 1.4; }
+  .placa--chat { gap: 14px; padding-block: 18px; }
+  .placa--chat .lista { gap: 6px; margin-top: 12px; font-size: .9375rem; }
+  .chat__topo { padding: 6px 10px; line-height: 1.3; }
+  .chat__topo img { width: 28px; height: 28px; }
+  .chat__topo small { display: block; line-height: 1; }
+  .chat__corpo { min-height: 0; padding: 12px 10px 6px; gap: 6px; }
+  .msg { padding: 8px 10px; font-size: .875rem; }
+  .msg--nilo { max-width: 100%; }
+  .msg__botoes { margin-top: 8px; }
+  .msg__botoes span { padding: 6px; }
+  .chat__legenda { padding: 0 10px 8px; }
+  .placa .chat__legenda { margin: 0; }
+  .ficha div { padding-block: 9px; }
+  .faq summary { padding-block: 12px; font-size: .9375rem; }
   .modos, .duas { grid-template-columns: 1fr; }
   .horas li { grid-template-columns: 1fr; gap: 2px; }
   .ficha div { grid-template-columns: 1fr; gap: 2px; }

@@ -1,5 +1,14 @@
 # Seção Produto — 08/11/2026
 
+## Validação do usuário no iPhone
+
+Em 08/11/2026, após a publicação do commit `5c71d6f` no site oficial,
+o usuário confirmou: **“testei no meu iPhone e ficou bom, está fluido.”**
+O navegador informado anteriormente é Safari; o modelo do iPhone não foi informado.
+Esta é uma validação física relatada pelo usuário, sem medição instrumental de FPS.
+Ela confirma a seção Produto publicada e substitui a pendência de teste físico daquela versão.
+Os ajustes de enquadramento descritos abaixo são posteriores a essa confirmação.
+
 ## Entrega
 
 A seção `#produto` fica entre O problema e Como funciona. O menu principal, o menu móvel
@@ -43,7 +52,7 @@ Nenhum arquivo STEP, projeto Blender, fotografia original ou dado interno foi pu
 Os renders originais e cenas de estúdio continuam fora do repositório público.
 `art/nilo.blend` já estava modificado antes desta tarefa e não integra este commit.
 
-## Validação local
+## Validação local inicial (commit `5c71d6f`)
 
 - `npm run build`: aprovado. O aviso do pacote 3D acima de 700 KB já é tratado pelo carregamento
   separado; não houve alteração nos modelos, materiais ou runtime do passeio.
@@ -64,8 +73,44 @@ Os renders originais e cenas de estúdio continuam fora do repositório público
 O WebKit no Windows teve p95 de 66/65 ms nas visitas fria/com cache; uma conferência da
 versão oficial anterior na mesma máquina teve 63/64 ms. Essa emulação tem limitação de
 desempenho e não comprova fluidez em um iPhone físico. A entrada completou sem fallback
-ou tela preta. A confirmação anterior do usuário no Safari do iPhone vale para a versão
-anterior; a nova seção ainda precisa dessa conferência física.
+ou tela preta. A confirmação física da seção publicada foi recebida em seguida e está
+registrada no início deste relatório.
+
+## Ajustes posteriores: enquadramento dos menus
+
+- As âncoras centralizam o conteúdo visível do Produto, sem contar os espaços do percurso.
+  O cálculo usa a altura visual disponível do navegador e desconta a navegação fixa.
+  O cabeçalho mantém a mesma altura antes e depois da rolagem, evitando desvio no destino.
+- Produto compacto no computador. No celular, uma imagem por vez e quatro seleções:
+  Plataforma, LED verde, Quatro pés e Parte frontal. São os mesmos renders e arquivos leves.
+- Como funciona, WhatsApp, Perguntas e Ficha técnica usam espaços menores no celular.
+  Textos repetidos foram resumidos, preservando instalação, funcionamento e configurações.
+- Nenhuma altura máxima corta textos. Telas muito baixas, respostas de FAQ abertas ou
+  texto ampliado continuam permitindo rolagem normal, em vez de reduzir a legibilidade.
+- O ajuste não adiciona dependências, modelos 3D ou processamento contínuo por quadro.
+
+Verificações desta atualização: `scripts/check-navigation.mjs` e `scripts/check-product.mjs`.
+Evidências locais em `.qa/navigation/` e `.qa/product-navigation/`, ignoradas pelo Git.
+Build e os dois testes do fluxo de publicação aprovados. O teste do Produto passou no
+Chrome e no WebKit (frio e com cache): quatro seleções, teclado e entrada no nilômetro
+sem tela preta ou fallback. Os assets permanecem abaixo do orçamento de 100 KB.
+
+O teste de navegação passou em **30 combinações de seção/tela**: Chrome 1366 × 768 e
+1440 × 900; WebKit 390 × 664, 375 × 667 e 430 × 740. Produto, Como funciona, WhatsApp,
+Empresas, Distribuidoras e Perguntas ficaram inteiros e centralizados abaixo do cabeçalho.
+Também passaram os quatro detalhes do Produto, link direto, movimento reduzido e texto
+ampliado em 320 × 568, com rolagem livre e sem transbordamento horizontal.
+Essas dimensões representam a área útil do navegador; não incluem as barras do Safari.
+
+Comparação de altura do conteúdo, não do segmento de rolagem da animação:
+
+| Conteúdo | Antes | Depois | Área útil testada |
+|---|---:|---:|---|
+| Produto no computador | 946 px | 668 px | 1366 × 768 |
+| Produto no celular | 1345 px | 570 px | 390 × 664 |
+| Como funciona no celular | 827 px | 550 px | 390 × 664 |
+| WhatsApp no celular | 856 px | 554 px | 390 × 664 |
+| Perguntas no celular, fechadas | 695 px | 542 px | 390 × 664 |
 
 ## Reproduzir
 

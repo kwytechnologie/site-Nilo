@@ -35,7 +35,7 @@ for (const mobile of [false, true]) {
       await page.waitForTimeout(mobile ? 900 : 1800);
       assert.match(await page.locator('.produto__cabecalho').innerText(), /bebedouro inteiro/);
       const heights = [];
-      for (const detail of ['led', 'pes', 'frente']) {
+      for (const detail of ['geral', 'led', 'pes', 'frente']) {
         await page.locator(`#produto-tab-${detail}`).click();
         await page.waitForFunction(id => {
           const panel = document.getElementById('produto-' + id);
@@ -50,13 +50,13 @@ for (const mobile of [false, true]) {
       }
       assert.ok(Math.max(...heights) - Math.min(...heights) <= 2, `Detail switching moves page: ${heights}`);
       await page.locator('#produto-tab-frente').press('Home');
+      assert.equal(await page.locator('#produto-tab-geral').getAttribute('aria-selected'), 'true');
+      await page.locator('#produto-tab-geral').press('ArrowRight');
       assert.equal(await page.locator('#produto-tab-led').getAttribute('aria-selected'), 'true');
-      await page.locator('#produto-tab-led').press('ArrowRight');
-      assert.equal(await page.locator('#produto-tab-pes').getAttribute('aria-selected'), 'true');
-      await page.locator('#produto-tab-pes').press('End');
+      await page.locator('#produto-tab-led').press('End');
       assert.equal(await page.locator('#produto-tab-frente').getAttribute('aria-selected'), 'true');
-      const images = await page.locator('#produto img').evaluateAll(imgs => imgs.map(i => ({ url: i.currentSrc, width: i.naturalWidth, complete: i.complete, loading: i.loading })));
-      assert.ok(images.every(i => i.complete && i.width > 0 && i.loading === 'lazy'));
+      const images = await page.locator('#produto img').evaluateAll(imgs => imgs.map(i => ({ url: i.currentSrc, width: i.naturalWidth, complete: i.complete, loading: i.loading, visible: i.getClientRects().length > 0 })));
+      assert.ok(images.filter(i => i.visible).every(i => i.complete && i.width > 0 && i.loading === 'lazy'));
       const imageBytes = await page.evaluate(() => performance.getEntriesByType('resource').filter(r => /nilo-(perspectiva|led|pes|frente)-\d+/.test(r.name)).reduce((n, r) => n + r.encodedBodySize, 0));
       assert.ok(imageBytes < 100000, 'Product images exceed the transfer budget');
       const traversal = await page.evaluate(() => new Promise(resolve => {

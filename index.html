@@ -100,14 +100,14 @@
         </article>
       </div>
 
-      <section class="parada produto" id="produto" aria-labelledby="produto-titulo" data-detail="led">
+      <section class="parada produto" id="produto" aria-labelledby="produto-titulo" data-detail="geral">
         <div class="produto__conteudo">
           <header class="produto__cabecalho">
             <div>
               <p class="eyebrow">Produto</p>
-              <h2 id="produto-titulo">O cuidado começa <span>pela base.</span></h2>
+              <h2 id="produto-titulo">Tudo começa <span>pela base.</span></h2>
             </div>
-            <p>O Nilo fica sob o <strong>bebedouro inteiro</strong>. O galão de 20 litros continua instalado normalmente no bebedouro. Você segue com a rotina, ele acompanha a água.</p>
+            <p>O Nilo fica sob o <strong>bebedouro inteiro</strong>, com o galão de 20 litros instalado normalmente nele.</p>
           </header>
 
           <div class="produto__explorador">
@@ -126,14 +126,30 @@
                 <g data-line="frente"><path d="M650 510 V475 L515 425"/><path d="m520 435-5-10 11-1"/><circle cx="515" cy="425" r="5"/></g>
               </svg>
               <div class="produto__pontos" role="tablist" aria-label="Detalhes da plataforma Nilo">
-                <button class="produto__ponto produto__ponto--led" type="button" role="tab" id="produto-tab-led" aria-controls="produto-led" aria-selected="true" data-detail="led">LED verde</button>
+                <button class="produto__ponto produto__ponto--geral" type="button" role="tab" id="produto-tab-geral" aria-controls="produto-geral" aria-selected="true" data-detail="geral">Plataforma</button>
+                <button class="produto__ponto produto__ponto--led" type="button" role="tab" id="produto-tab-led" aria-controls="produto-led" aria-selected="false" tabindex="-1" data-detail="led">LED verde</button>
                 <button class="produto__ponto produto__ponto--pes" type="button" role="tab" id="produto-tab-pes" aria-controls="produto-pes" aria-selected="false" tabindex="-1" data-detail="pes">Quatro pés</button>
                 <button class="produto__ponto produto__ponto--frente" type="button" role="tab" id="produto-tab-frente" aria-controls="produto-frente" aria-selected="false" tabindex="-1" data-detail="frente">Parte frontal</button>
               </div>
             </div>
 
             <div class="produto__detalhes">
-              <section class="produto__painel" role="tabpanel" id="produto-led" aria-labelledby="produto-tab-led" tabindex="0">
+              <section class="produto__painel" role="tabpanel" id="produto-geral" aria-labelledby="produto-tab-geral" tabindex="0">
+                <div class="produto__foto">
+                  <img src="/src/assets/produto/nilo-perspectiva-640.webp"
+                    srcset="/src/assets/produto/nilo-perspectiva-640.webp 640w, /src/assets/produto/nilo-perspectiva-1280.webp 1280w"
+                    sizes="(max-width: 760px) calc(100vw - 32px), 380px"
+                    width="1280" height="960" loading="lazy" decoding="async" fetchpriority="low"
+                    alt="Plataforma Nilo com a logo voltada para a frente, tampo de vidro e quatro pés sob a base." />
+                </div>
+                <div class="produto__texto">
+                  <p class="produto__rotulo">Conheça a plataforma</p>
+                  <h3>Discreta sob o bebedouro.</h3>
+                  <p>Centralize o bebedouro inteiro em uma superfície firme e nivelada. A logo e a estrutura maior da eletrônica ficam na frente.</p>
+                  <p class="produto__nota">Explore o LED, os quatro pés e a parte frontal.</p>
+                </div>
+              </section>
+              <section class="produto__painel" role="tabpanel" id="produto-led" aria-labelledby="produto-tab-led" tabindex="0" hidden>
                 <div class="produto__foto">
                   <img src="/src/assets/produto/nilo-led-640.webp"
                     srcset="/src/assets/produto/nilo-led-640.webp 640w, /src/assets/produto/nilo-led-1280.webp 1280w"
@@ -144,8 +160,8 @@
                 <div class="produto__texto">
                   <p class="produto__rotulo"><span class="produto__sinal" aria-hidden="true"></span>Na hora de configurar</p>
                   <h3>Uma luz para começar.</h3>
-                  <p>O LED verde pisca quando a rede de configuração do Nilo está disponível. A luz aparece na gota da logo e também pela parte frontal e inferior do hardware.</p>
-                  <p class="produto__nota">É o sinal para configurar pelo celular. Os avisos sobre a água chegam pelo WhatsApp.</p>
+                  <p>Pisca quando a rede de configuração está disponível. A luz aparece na gota da logo e pela frente e parte inferior do hardware.</p>
+                  <p class="produto__nota">Configure pelo celular. Os avisos de água chegam pelo WhatsApp.</p>
                 </div>
               </section>
               <section class="produto__painel" role="tabpanel" id="produto-pes" aria-labelledby="produto-tab-pes" tabindex="0" hidden>
@@ -159,7 +175,7 @@
                 <div class="produto__texto">
                   <p class="produto__rotulo">Por baixo da plataforma</p>
                   <h3>Quatro pontos de apoio.</h3>
-                  <p>São quatro pés, com apoios de borracha. Dois ficam junto à estrutura maior da eletrônica, na frente. Os outros dois ficam atrás.</p>
+                  <p>Quatro pés com apoios de borracha: dois junto à estrutura maior da eletrônica, na frente, e dois atrás.</p>
                   <p class="produto__nota">Centralize o bebedouro inteiro no Nilo e use uma superfície firme e nivelada.</p>
                 </div>
               </section>
@@ -174,8 +190,8 @@
                 <div class="produto__texto">
                   <p class="produto__rotulo">De frente para você</p>
                   <h3>A tecnologia fica na base.</h3>
-                  <p>Com a logo voltada para você, a estrutura maior da eletrônica fica na frente, sob o vidro. O Nilo funciona com 4 pilhas AA e se conecta ao Wi-Fi do local.</p>
-                  <p class="produto__nota">O tampo mede 30 × 30 cm, com vidro de 4 mm. O adesivo de 29 × 29 cm deixa uma borda transparente de 5 mm.</p>
+                  <p>A estrutura maior da eletrônica fica na frente, sob o vidro, com a logo voltada para você. Funciona com 4 pilhas AA e Wi-Fi do local.</p>
+                  <p class="produto__nota">Adesivo de 29 × 29 cm, com borda transparente de 5 mm.</p>
                 </div>
               </section>
             </div>
@@ -189,32 +205,32 @@
             </dl>
             <a class="btn btn--ghost" href="#como-funciona">Veja como instalar <span aria-hidden="true">↓</span></a>
           </div>
-          <p class="produto__legenda">Imagens ilustrativas do protótipo. O close do LED representa o momento aceso durante a configuração.</p>
+          <p class="produto__legenda">Imagens ilustrativas do protótipo. LED mostrado aceso durante a configuração.</p>
         </div>
       </section>
 
       <div class="parada parada--dir" id="como-funciona" data-parada="2">
         <article class="placa placa--larga">
           <p class="eyebrow">Como funciona</p>
-          <h2>Instala em minutos. Depois disso, você esquece que existe.</h2>
+          <h2>Instale em minutos. Deixe o resto com o Nilo.</h2>
           <ol class="passos">
             <li>
               <span class="passo__num" aria-hidden="true"><i></i></span>
-              <h3>Coloque o bebedouro inteiro sobre o Nilo</h3>
-              <p>Centralize o bebedouro na plataforma, sobre uma superfície firme e nivelada. O galão de 20 litros fica instalado normalmente no bebedouro. O Nilo funciona com 4 pilhas AA.</p>
+              <h3>Bebedouro inteiro sobre o Nilo</h3>
+              <p>Centralize em uma superfície firme e nivelada, com o galão de 20 litros instalado no bebedouro. O Nilo usa 4 pilhas AA.</p>
             </li>
             <li>
               <span class="passo__num" aria-hidden="true"><i></i><i></i></span>
               <h3>Conecte e mande um oi</h3>
-              <p>Pelo celular, você conecta o Nilo ao Wi-Fi do local e chama a gente no WhatsApp. O cadastro acontece na própria conversa.</p>
+              <p>Conecte o Nilo ao Wi-Fi do local pelo celular. Chame a gente no WhatsApp para se cadastrar na conversa.</p>
             </li>
             <li>
               <span class="passo__num" aria-hidden="true"><i></i><i></i><i></i></span>
               <h3>Pronto, ele cuida do resto</h3>
-              <p>O Nilo monitora o galão o tempo todo. Quando a água chega no fim, você recebe o aviso e decide, ou deixa ele pedir sozinho.</p>
+              <p>O Nilo acompanha a água. Quando estiver acabando, avisa você. Confirme o pedido ou escolha o modo automático.</p>
             </li>
           </ol>
-          <p class="nota">Os traços acima são os números do Egito antigo: um traço por unidade.</p>
+          <p class="nota">Numerais egípcios: um traço por unidade.</p>
         </article>
       </div>
 
@@ -222,9 +238,9 @@
         <article class="placa placa--chat">
           <div>
             <p class="eyebrow">No WhatsApp</p>
-            <h2>Tudo acontece numa conversa que você já tem aberta.</h2>
+            <h2>Tudo numa conversa.</h2>
             <ul class="lista">
-              <li>Veja quanto falta no galão quando quiser</li>
+              <li>Consulte a água restante no galão</li>
               <li>Pague por Pix na própria conversa</li>
               <li>Troque de distribuidora ou pause os avisos</li>
             </ul>
@@ -235,12 +251,12 @@
               <div><b>Nilo</b><small>online</small></div>
             </div>
             <div class="chat__corpo" role="list">
-              <div class="msg msg--nilo" role="listitem">Oi, Ana! O galão da <b>Recepção</b> está quase no fim. Quer que eu peça outro?
+              <div class="msg msg--nilo" role="listitem">Ana, a água da <b>Recepção</b> está acabando. Peço outro galão?
                 <div class="msg__botoes"><span class="is-ativo">Pedir água</span><span>Agora não</span></div>
               </div>
               <div class="msg msg--voce" role="listitem">Pedir água</div>
-              <div class="msg msg--nilo" role="listitem">Feito. Mandei o pedido para a <b>distribuidora mais perto</b> da empresa. Ela confirma por aqui.</div>
-              <div class="msg msg--nilo" role="listitem">✔ Pedido confirmado. Se quiser, já pode pagar por Pix.</div>
+              <div class="msg msg--nilo" role="listitem">Pedido enviado à <b>distribuidora mais perto</b>. Aguarde a confirmação por aqui.</div>
+              <div class="msg msg--nilo" role="listitem">✔ Confirmado. Você já pode pagar por Pix.</div>
             </div>
             <p class="chat__legenda">Conversa ilustrativa.</p>
           </div>

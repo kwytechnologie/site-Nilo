@@ -48,11 +48,12 @@ export function initUI() {
   // O cartão da seção para logo abaixo do menu: centralizado quando cabe na tela, senão no topo.
   // offsetTop ignora o deslocamento da animação de entrada, que ainda pode estar aplicado.
   function topoDoCartao(el) {
-    const card = el.querySelector('.placa, .final') || el;
+    const card = el.querySelector('.produto__conteudo, .placa, .final, .hero') || el;
     let y = 0;
     for (let n = card; n; n = n.offsetParent) y += n.offsetTop;
     const navH = nav.offsetHeight;
-    const folga = Math.max(24, (innerHeight - navH - card.offsetHeight) / 2);
+    const height = window.visualViewport?.height || innerHeight;
+    const folga = Math.max(12, (height - navH - card.offsetHeight) / 2);
     return Math.max(0, y - navH - folga);
   }
   function irPara(el, suave) {
