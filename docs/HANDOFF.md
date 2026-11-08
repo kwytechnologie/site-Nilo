@@ -1,5 +1,28 @@
 # Passagem de bastão: site do Nilo
 
+## Atualização de 08/11/2026: seção Produto
+
+O usuário aprovou os renders de estúdio e o close do LED e autorizou a seção Produto.
+A seção `#produto` foi integrada antes de Como funciona, com entrada suave sobre o rio,
+marcações douradas e detalhes por toque/clique: LED de configuração, quatro pés e frente.
+No celular, os detalhes aparecem um por vez; setas do teclado, Home e End também funcionam.
+
+Medidas confirmadas: vidro 30 × 30 cm com 4 mm de espessura; adesivo ampliado para
+29 × 29 cm, deixando 5 mm de borda transparente. Preservar a frente da eletrônica e os quatro pés.
+O bebedouro **inteiro** fica sobre o Nilo e o galão continua instalado no bebedouro.
+O LED verde pisca quando a rede de configuração está disponível; não é alerta de água baixa
+nem confirmação de internet. O brilho do close é ilustrativo, aprovado visualmente pelo usuário.
+
+Imagens em `src/assets/produto/`, derivadas dos renders aprovados em WebP 640/1280 px,
+com carregamento lazy, decodificação assíncrona e nomes versionados pelo build.
+Não adicionar STEP, projetos Blender ou fotos originais ao repositório público.
+O produto usa HTML/CSS e os renders, sem acrescentar modelos, shaders ou loops ao passeio 3D.
+Renders e projetos de estúdio permanecem na pasta local `nilo-produto/`.
+
+Implementação: `src/ui/product.js`, `src/styles/product.css`, `index.html` e links dos menus.
+Teste de interação e travessia: `scripts/check-product.mjs`, com Playwright existente indicado
+por `NILO_PLAYWRIGHT_MODULE`. Relatório: `docs/QA-PRODUTO-2026-11-08.md`.
+
 ## Atualização de 08/11/2026: instalação e referências do produto
 
 A plataforma Nilo fica sob o **bebedouro inteiro**, com o galão de 20 litros instalado
@@ -11,7 +34,7 @@ inclusive quando o nome de uma peça no STEP ainda menciona MDF.
 Direção aprovada para a futura seção Produto: integrada ao passeio, antes de Como funciona,
 com revelação a partir do reflexo do rio, vista frontal em perspectiva e detalhes explicativos.
 No celular, mostrar um detalhe por vez. Usar o CAD e o adesivo original para preservar o produto.
-A seção e os renders ainda não foram produzidos. Fontes locais: `Downloads/plataforma nilo/`.
+Os renders foram aprovados e a seção foi implementada na atualização acima. Fontes locais: `Downloads/plataforma nilo/`.
 
 O produto tem quatro pés. Com a logo legível de frente, o conjunto maior da eletrônica fica
 na frente; os outros dois pés ficam atrás. O LED verde interno aparece na gota da logo e pela

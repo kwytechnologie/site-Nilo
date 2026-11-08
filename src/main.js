@@ -4,7 +4,9 @@ import '@fontsource/space-mono/400.css';
 import '@fontsource/space-mono/700.css';
 import '@fontsource/reem-kufi/latin-600.css';
 import './styles/main.css';
+import './styles/product.css';
 import { initUI } from './ui/ui.js';
+import { initProduct } from './ui/product.js';
 import { initCookies } from './ui/cookies.js';
 import { initCadastro } from './ui/cadastro.js';
 import { modelUrl } from './scenes/model-url.js';
@@ -20,6 +22,7 @@ if (!new URLSearchParams(location.search).has('sem3d')) {
 
 const stage = import('./scenes/stage.js');
 const ui = initUI();
+initProduct();
 initCookies({ politica: 'politica-de-privacidade/' });
 initCadastro();
 // O 3D vem num pacote separado: o texto e os botões já funcionam enquanto ele baixa.

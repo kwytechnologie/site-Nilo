@@ -1,0 +1,59 @@
+/* A plataforma emerge uma vez; as marcações lembram a leitura do nilômetro. */
+.produto { display: block; position: relative; padding-block: 120px; }
+.produto::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, transparent, rgb(11 31 42 / .92) 18%, rgb(11 31 42 / .94) 82%, transparent); }
+.produto__conteudo { position: relative; max-width: 1280px; margin-inline: auto; }
+.produto__cabecalho { display: grid; grid-template-columns: 1.2fr 1fr; align-items: end; gap: 32px; margin-bottom: 36px; }
+.produto__cabecalho h2 { font-size: clamp(2.65rem, 5vw, 4.8rem); line-height: .94; }
+.produto__cabecalho h2 span { display: block; color: var(--ouro); }
+.produto__cabecalho > p { max-width: 35rem; color: var(--linho-70); }
+.produto__cabecalho strong { color: var(--linho); }
+.produto__explorador { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.produto__vista { position: relative; border-radius: var(--raio-estela); background: var(--nilo); }
+.produto__principal { margin: 0; overflow: hidden; border-radius: inherit; border: 1px solid rgb(217 164 65 / .45); }
+.produto__principal img { width: 100%; aspect-ratio: 4 / 3; }
+.produto__linhas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; stroke: #8c631e; stroke-width: 1.5; }
+.produto__linhas g { opacity: .45; }
+.produto[data-detail="led"] [data-line="led"], .produto[data-detail="pes"] [data-line="pes"], .produto[data-detail="frente"] [data-line="frente"] { opacity: 1; stroke-width: 2.5; }
+.produto__ponto { position: absolute; min-height: 44px; padding: 10px 16px; background: var(--noite); color: var(--linho); border: 1px solid var(--ouro); border-radius: 3px; font: 700 .76rem/1.3 var(--mono); cursor: pointer; }
+.produto__ponto::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 10px; border: 1px solid var(--ouro); transform: rotate(45deg); }
+.produto__ponto[aria-selected="true"] { background: var(--ouro); color: var(--noite); }
+.produto__ponto[aria-selected="true"]::before { background: var(--noite); border-color: var(--noite); }
+.produto__ponto--led { top: 18%; left: 10%; }
+.produto__ponto--pes { bottom: 16%; left: 6%; }
+.produto__ponto--frente { bottom: 8%; right: 6%; }
+.produto__detalhes { min-width: 0; }
+.produto__painel { margin: 0; }
+.produto__painel[hidden] { display: none; }
+.produto__foto { aspect-ratio: 4 / 3; display: grid; align-items: center; overflow: hidden; background: #b0b1ae; border: 1px solid rgb(217 164 65 / .35); border-radius: 18px 18px 3px 3px; }
+.produto__foto img { width: 100%; }
+.produto__texto { padding: 22px 0 0 18px; border-left: 2px solid var(--ouro); min-height: 282px; }
+.produto__rotulo { display: flex; align-items: center; gap: 8px; font: 700 .65rem/1.6 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ouro); }
+.produto__sinal { flex: none; width: 8px; height: 8px; background: #75db89; border-radius: 50%; }
+.produto__texto h3 { font-size: clamp(1.65rem, 2.5vw, 2.15rem); line-height: 1.04; margin: 10px 0 14px; }
+.produto__texto > p:not(.produto__rotulo) { color: var(--linho-70); font-size: .98rem; }
+.produto__texto .produto__nota { margin-top: 14px; font-size: .88rem !important; }
+.produto__base { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-top: 24px; margin-top: 20px; border-top: 1px solid rgb(217 164 65 / .35); }
+.produto__medidas { display: flex; gap: clamp(24px, 5vw, 64px); margin: 0; }
+.produto__medidas dt { color: var(--linho-70); font: 400 .65rem var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+.produto__medidas dd { margin: 4px 0 0; font: 700 clamp(1.4rem, 2vw, 1.9rem)/1.1 var(--display); }
+.produto__legenda { margin-top: 18px; font-size: .76rem; color: var(--linho-70); }
+.js .produto__vista { opacity: 0; transform: translateY(40px); transition: opacity .8s var(--ease), transform 1s var(--ease); }
+.js .produto.is-dentro .produto__vista, .js .produto__vista:focus-within { opacity: 1; transform: none; }
+@media (max-width: 760px) {
+  .produto { padding: 96px 16px; }
+  .produto__cabecalho { grid-template-columns: 1fr; gap: 20px; margin-bottom: 24px; }
+  .produto__cabecalho h2 { font-size: clamp(2.6rem, 10vw, 4rem); }
+  .produto__explorador { grid-template-columns: 1fr; gap: 22px; }
+  .produto__linhas { display: none; }
+  .produto__vista { border-radius: 20px 20px 3px 3px; background: transparent; }
+  .produto__pontos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 12px; }
+  .produto__ponto { position: static; padding: 10px 4px; min-height: 48px; font-size: .68rem; }
+  .produto__ponto::before { display: none; }
+  .produto__texto { min-height: 272px; padding-top: 20px; padding-left: 16px; }
+  .produto__base { align-items: flex-start; flex-direction: column; gap: 22px; margin-top: 4px; }
+  .produto__medidas { width: 100%; justify-content: space-between; gap: 12px; }
+  .produto__base .btn { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .produto__vista { opacity: 1; transform: none; transition: none; }
+}

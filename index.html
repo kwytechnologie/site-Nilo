@@ -34,6 +34,7 @@
       <img src="/marca/nilo-a-covado-escuro.svg" alt="Nilo" width="248" height="170" />
     </a>
     <nav class="nav__links" aria-label="Seções">
+      <a href="#produto">Produto</a>
       <a href="#como-funciona">Como funciona</a>
       <a href="#whatsapp">No WhatsApp</a>
       <a href="#empresas">Empresas</a>
@@ -46,6 +47,7 @@
     </button>
   </header>
   <div class="menu-movel" id="menu-movel" hidden>
+    <a href="#produto">Produto</a>
     <a href="#como-funciona">Como funciona</a>
     <a href="#whatsapp">No WhatsApp</a>
     <a href="#empresas">Empresas</a>
@@ -97,6 +99,99 @@
           </ol>
         </article>
       </div>
+
+      <section class="parada produto" id="produto" aria-labelledby="produto-titulo" data-detail="led">
+        <div class="produto__conteudo">
+          <header class="produto__cabecalho">
+            <div>
+              <p class="eyebrow">Produto</p>
+              <h2 id="produto-titulo">O cuidado começa <span>pela base.</span></h2>
+            </div>
+            <p>O Nilo fica sob o <strong>bebedouro inteiro</strong>. O galão de 20 litros continua instalado normalmente no bebedouro. Você segue com a rotina, ele acompanha a água.</p>
+          </header>
+
+          <div class="produto__explorador">
+            <div class="produto__vista">
+              <figure class="produto__principal">
+                <img src="/src/assets/produto/nilo-perspectiva-640.webp"
+                  srcset="/src/assets/produto/nilo-perspectiva-640.webp 640w, /src/assets/produto/nilo-perspectiva-1280.webp 1280w"
+                  sizes="(max-width: 760px) calc(100vw - 32px), (max-width: 1400px) 55vw, 750px"
+                  width="1280" height="960" loading="lazy" decoding="async" fetchpriority="low"
+                  alt="Plataforma Nilo vista de frente e de cima, com tampo de vidro e logotipo na borda frontal." />
+                <figcaption class="sr-only">Explore a luz de configuração, os quatro pés e a estrutura frontal nos detalhes a seguir.</figcaption>
+              </figure>
+              <svg class="produto__linhas" viewBox="0 0 800 600" fill="none" aria-hidden="true">
+                <g data-line="led"><path d="M170 155 V250 L202 303"/><path d="m192 299 10 4-1-11"/><circle cx="202" cy="303" r="5"/></g>
+                <g data-line="pes"><path d="M130 455 V425 L260 390"/><path d="m250 386 10 4-7 8"/><circle cx="260" cy="390" r="5"/></g>
+                <g data-line="frente"><path d="M650 510 V475 L515 425"/><path d="m520 435-5-10 11-1"/><circle cx="515" cy="425" r="5"/></g>
+              </svg>
+              <div class="produto__pontos" role="tablist" aria-label="Detalhes da plataforma Nilo">
+                <button class="produto__ponto produto__ponto--led" type="button" role="tab" id="produto-tab-led" aria-controls="produto-led" aria-selected="true" data-detail="led">LED verde</button>
+                <button class="produto__ponto produto__ponto--pes" type="button" role="tab" id="produto-tab-pes" aria-controls="produto-pes" aria-selected="false" tabindex="-1" data-detail="pes">Quatro pés</button>
+                <button class="produto__ponto produto__ponto--frente" type="button" role="tab" id="produto-tab-frente" aria-controls="produto-frente" aria-selected="false" tabindex="-1" data-detail="frente">Parte frontal</button>
+              </div>
+            </div>
+
+            <div class="produto__detalhes">
+              <section class="produto__painel" role="tabpanel" id="produto-led" aria-labelledby="produto-tab-led" tabindex="0">
+                <div class="produto__foto">
+                  <img src="/src/assets/produto/nilo-led-640.webp"
+                    srcset="/src/assets/produto/nilo-led-640.webp 640w, /src/assets/produto/nilo-led-1280.webp 1280w"
+                    sizes="(max-width: 760px) calc(100vw - 32px), 380px"
+                    width="1280" height="884" loading="lazy" decoding="async" fetchpriority="low"
+                    alt="Detalhe do LED verde aceso na gota da logo e visível pela frente do hardware, acima de um dos pés." />
+                </div>
+                <div class="produto__texto">
+                  <p class="produto__rotulo"><span class="produto__sinal" aria-hidden="true"></span>Na hora de configurar</p>
+                  <h3>Uma luz para começar.</h3>
+                  <p>O LED verde pisca quando a rede de configuração do Nilo está disponível. A luz aparece na gota da logo e também pela parte frontal e inferior do hardware.</p>
+                  <p class="produto__nota">É o sinal para configurar pelo celular. Os avisos sobre a água chegam pelo WhatsApp.</p>
+                </div>
+              </section>
+              <section class="produto__painel" role="tabpanel" id="produto-pes" aria-labelledby="produto-tab-pes" tabindex="0" hidden>
+                <div class="produto__foto">
+                  <img src="/src/assets/produto/nilo-pes-640.webp"
+                    srcset="/src/assets/produto/nilo-pes-640.webp 640w, /src/assets/produto/nilo-pes-1280.webp 1280w"
+                    sizes="(max-width: 760px) calc(100vw - 32px), 380px"
+                    width="1280" height="960" loading="lazy" decoding="async" fetchpriority="low"
+                    alt="Parte inferior do Nilo com quatro pés: dois junto à estrutura frontal e dois separados na parte de trás." />
+                </div>
+                <div class="produto__texto">
+                  <p class="produto__rotulo">Por baixo da plataforma</p>
+                  <h3>Quatro pontos de apoio.</h3>
+                  <p>São quatro pés, com apoios de borracha. Dois ficam junto à estrutura maior da eletrônica, na frente. Os outros dois ficam atrás.</p>
+                  <p class="produto__nota">Centralize o bebedouro inteiro no Nilo e use uma superfície firme e nivelada.</p>
+                </div>
+              </section>
+              <section class="produto__painel" role="tabpanel" id="produto-frente" aria-labelledby="produto-tab-frente" tabindex="0" hidden>
+                <div class="produto__foto">
+                  <img src="/src/assets/produto/nilo-frente-640.webp"
+                    srcset="/src/assets/produto/nilo-frente-640.webp 640w, /src/assets/produto/nilo-frente-1280.webp 1280w"
+                    sizes="(max-width: 760px) calc(100vw - 32px), 380px"
+                    width="1280" height="669" loading="lazy" decoding="async" fetchpriority="low"
+                    alt="Perfil frontal do Nilo, com a estrutura maior da eletrônica sob o vidro e o logotipo voltado para quem olha." />
+                </div>
+                <div class="produto__texto">
+                  <p class="produto__rotulo">De frente para você</p>
+                  <h3>A tecnologia fica na base.</h3>
+                  <p>Com a logo voltada para você, a estrutura maior da eletrônica fica na frente, sob o vidro. O Nilo funciona com 4 pilhas AA e se conecta ao Wi-Fi do local.</p>
+                  <p class="produto__nota">O tampo mede 30 × 30 cm, com vidro de 4 mm. O adesivo de 29 × 29 cm deixa uma borda transparente de 5 mm.</p>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div class="produto__base">
+            <dl class="produto__medidas">
+              <div><dt>Plataforma</dt><dd>30 × 30 cm</dd></div>
+              <div><dt>Vidro</dt><dd>4 mm</dd></div>
+              <div><dt>Apoios</dt><dd>4 pés</dd></div>
+            </dl>
+            <a class="btn btn--ghost" href="#como-funciona">Veja como instalar <span aria-hidden="true">↓</span></a>
+          </div>
+          <p class="produto__legenda">Imagens ilustrativas do protótipo. O close do LED representa o momento aceso durante a configuração.</p>
+        </div>
+      </section>
 
       <div class="parada parada--dir" id="como-funciona" data-parada="2">
         <article class="placa placa--larga">
@@ -307,7 +402,7 @@
     </section>
   </main>
 
-  <noscript><style>.stage{display:none}.parada,.inscricao{opacity:1!important}</style></noscript>
+  <noscript><style>.stage{display:none}.parada,.inscricao{opacity:1!important}.produto__pontos,.produto__linhas{display:none}.produto__painel[hidden]{display:block}.produto__detalhes{display:grid;gap:24px}</style></noscript>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
