@@ -1,5 +1,23 @@
 # Passagem de bastão: site do Nilo
 
+## Atualização de 08/11/2026: instalação e referências do produto
+
+A plataforma Nilo fica sob o **bebedouro inteiro**, com o galão de 20 litros instalado
+normalmente no bebedouro. Esta é a orientação confirmada pelo usuário; apresentação,
+instruções, FAQ, metadados, termos, privacidade e materiais internos foram alinhados.
+A base de MDF pertence a outro protótipo e deve ser ignorada como referência do atual,
+inclusive quando o nome de uma peça no STEP ainda menciona MDF.
+
+Direção aprovada para a futura seção Produto: integrada ao passeio, antes de Como funciona,
+com revelação a partir do reflexo do rio, vista frontal em perspectiva e detalhes explicativos.
+No celular, mostrar um detalhe por vez. Usar o CAD e o adesivo original para preservar o produto.
+A seção e os renders ainda não foram produzidos. Fontes locais: `Downloads/plataforma nilo/`.
+
+O produto tem quatro pés. Com a logo legível de frente, o conjunto maior da eletrônica fica
+na frente; os outros dois pés ficam atrás. O LED verde interno aparece na gota da logo e pela
+região inferior/frontal; pisca para indicar que a rede de configuração está ativa.
+Não confundir essa indicação com nível baixo de água ou confirmação de conexão à internet.
+
 ## Atualização de 31/10/2026: início progressivo da animação
 
 O HTML já mostra uma imagem do cenário atual, com versões desktop e móvel, antecipada por preload. Isso elimina a sequência gradiente/poster antigo/3D. O poster do poço só é solicitado ao entrar nessa parte. Os novos posters foram capturados da própria cena; modelos, materiais, iluminação e resolução do 3D foram preservados.
@@ -36,7 +54,7 @@ Estado em 07/10/2026, ao fim da primeira sessão (local). Este arquivo é para a
 ## O produto
 
 **Nilo** é o nome novo da Balança H2O da KWY Technologies: uma base com 4 células de carga que
-fica debaixo do galão de água de 20 L, mede quanto resta e avisa e pede água pela distribuidora
+fica sob o bebedouro inteiro, com o galão de água de 20 L instalado nele, mede quanto resta e avisa e pede água pela distribuidora
 mais próxima pelo WhatsApp. Sem aplicativo. 3 pilhas AA, de 9 meses a 1 ano. Wi-Fi 2,4 GHz.
 Modo automático (pede sozinho se o cliente não responder em 15 min; o primeiro pedido sempre
 confirma) ou manual. Pix na conversa. CPF e CNPJ, várias balanças por cliente. Ainda é protótipo:

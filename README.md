@@ -1,6 +1,7 @@
 # Nilo
 
-Site do Nilo, a balança inteligente para galão de água da KWY Technologies.
+Site do Nilo, o medidor inteligente da KWY Technologies instalado sob o bebedouro inteiro,
+com o galão de 20 litros instalado normalmente no bebedouro.
 Uma descida pelo rio Nilo até o nilômetro da ilha de Roda, no Cairo, feita em Three.js.
 
 ```bash

@@ -30,8 +30,9 @@ depois marca, depois produto e texto.
 
 8. **Preço e modelo de venda**: compra, comodato com a distribuidora, assinatura? O FAQ hoje diz
    que os preços de lançamento estão sendo fechados.
-9. **Compatibilidade**: funciona com galão em bebedouro de pressão, em suporte de chão, com galão
-   de 10 L? O site diz só "debaixo do galão".
+9. **Instalação confirmada em 08/11/2026**: a plataforma fica sob o bebedouro inteiro,
+   com o galão de 20 litros instalado normalmente nele. A compatibilidade com diferentes
+   modelos de bebedouro e outras capacidades de galão continua pendente de confirmação.
 10. **Distribuidoras parceiras**: o FAQ diz que o Nilo trabalha com parceiras perto do cliente e
     que a distribuidora do cliente "pode entrar". Confirmar se é assim que vai ser.
 11. **Termos de uso e privacidade**: escritos em 28/10/2026 (`termos/` e
@@ -47,8 +48,11 @@ depois marca, depois produto e texto.
     público secundário.
 14. A conversa do WhatsApp no site é ilustrativa (nome "Ana", galão da "Recepção"). Quer usar as
     mensagens reais aprovadas na Meta?
-15. Nenhuma imagem gerada por IA foi usada: o Higgsfield está com saldo zero. Tudo do site é
-    desenhado em código. Se quiser fotos do produto, falta sessão de foto do protótipo.
+15. **Apresentação do produto, direção aprovada em 08/11/2026**: seção Produto integrada ao
+    passeio pelo rio, com imagens fiéis ao protótipo e detalhes explicativos. Fotos, montagem
+    STEP e arte do adesivo foram fornecidos. A base de MDF pertence a outro protótipo e deve
+    ser ignorada como referência visual do atual, mesmo que o nome permaneça no CAD.
+    Produção das imagens e implementação da seção ainda pendentes. Ver `docs/HANDOFF.md`.
 16. **Imagem de compartilhamento** (`public/img/og-nilo.jpg`, 1200 x 630): a cena do rio com a logo
     A e a frase do topo. O endereço dela no `index.html` é relativo; com o domínio definido, vale
     trocar por endereço completo, que é o que WhatsApp e redes leem melhor.
